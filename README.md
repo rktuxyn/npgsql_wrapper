@@ -6,7 +6,7 @@ PgSQL C++ Wrapper for web_jsx (CGI Application)<br/>
 #include <npgsql.h>
 #endif//!_npgsql_h
 #if !defined(_npgsql_tools_h)
-#include "npgsql_tools.h"
+#include <npgsql_tools.h>
 #endif//_npgsql_tools_h
 ```
 #Initialize sow.npgsql.dll
