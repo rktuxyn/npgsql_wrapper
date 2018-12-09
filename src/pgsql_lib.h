@@ -20,8 +20,8 @@
 #if !defined(POSTGRES_EXT_H)
 #include <postgres_ext.h>
 #endif//!POSTGRES_EXT_H
-#if !defined(_pg_sql_h)
-#define _pg_sql_h
+#if !defined(_pgsql_lib_h)
+#define _pgsql_lib_h
 #if !(defined(_WIN32)||defined(_WIN64)) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
 #define LIBPQ_C_DLL				"libpq.so.5"
 #else
@@ -60,17 +60,16 @@ typedef void* h_module;
 typedef HINSTANCE h_get_proc_iddl;
 typedef HMODULE h_module;
 #endif
-class pg_sql {
+class pg_sql_lib {
 private:
 	bool							_connected;
 	PGconn*							_conn;
 	PGresult*						_pg_result;
 	int								_cursor_rows_fetched;
 	size_t							_copy_cols_count;
-	//h_get_proc_iddl					_pgsql_proc_iddl;
-	//h_module						_pgsql_module;
-	
-	/*PQclearPQFunc					_PQclear;
+	h_get_proc_iddl					_pgsql_proc_iddl;
+	h_module						_pgsql_module;
+	PQclearPQFunc					_PQclear;
 	PQerrorMessagePQFunc			_PQerrorMessage;
 	PQexecPQFunc					_PQexec;
 	PQfmodPQFunc					_PQfmod;
@@ -91,60 +90,62 @@ private:
 	PQsetdbLoginPQFunc				_PQsetdbLogin;
 	PQconnectdbPQFunc				_PQconnectdb;
 	PQfinishPQFunc					_PQfinish;
-	PQstatusPQFunc					_PQstatus;*/
+	PQstatusPQFunc					_PQstatus;
 	int								_n_error;
 	char*							_n_error_text;
 	int								_pq_error;
 	char*							_pq_error_text;
 public:
-	pg_sql();
-	~pg_sql();
+	pg_sql_lib();
+	~pg_sql_lib();
 	virtual const int is_api_error();
 	virtual const char * get_last_error();
 	// Initialize API
-	//virtual int init(const char* lib_path);
+	virtual int init(const char* lib_path);
 	// Connect to the database
 	virtual int connect(const char *conn);
 	virtual void exit_nicely();
 	virtual int get_row_count(const char *object, char *value);
 	virtual int execute_scalar(const char *query, char *value);
 	template<class _func>
-	int execute_scalar(const char *query, _func func);
+	int execute_scalar(const char *query, _func func) {
+		if ((query != NULL) && (query[0] == '\0')) {
+			return -1;
+		}
+		bool exists = false;
+		PGresult *res = _PQexec(_conn, query);
+		if (_PQresultStatus(res) == PGRES_TUPLES_OK) {
+			exists = true;
+			//_PQntuples
+			int nFields = _PQnfields(res);
+			for (int i = 0; i < _PQntuples(res); i++) {
+				std::vector<char*>*rows = new std::vector<char*>();
+				for (int j = 0; j < nFields; j++) {
+					char* c = _PQgetvalue(res, i, j);
+					char* copy = new char[strlen(c) + 1];
+					strcpy(copy, c);
+					rows->push_back(copy);
+				}
+				func(i, *rows);
+				free(rows);
+			}
+		}
+		else set_error();
+		_PQclear(res);
+		return (exists == true) ? 0 : -1;
+	};
 	virtual int execute_scalar_x(const char *query, std::list<std::string>&out_param_array, std::map<std::string, char*>&out_param_map);
 	virtual int execute_non_query(const char *query);
 private:
 	virtual void parse_connection_string(const char *conn, std::string& user, std::string& pwd, std::string& server, std::string& port, std::string& db);
+#if !(defined(_WIN32)||defined(_WIN64)) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
+	virtual int load_pgsql_lib(const char* name);
+#else
+	virtual int load_pgsql_lib(const char* name);
+#endif
 	virtual void set_error(const char* std_error_msg);
 	virtual void set_error();
 };
 //5:30 AM 11/19/2018 Connected
 //7:55 AM 11/19/2018 END
-#endif//!_pg_sql_h
-
-template<class _func>
-inline int pg_sql::execute_scalar(const char * query, _func func) {
-	if ((query != NULL) && (query[0] == '\0')) {
-		return -1;
-	}
-	bool exists = false;
-	PGresult *res = PQexec(_conn, query);
-	if (PQresultStatus(res) == PGRES_TUPLES_OK) {
-		exists = true;
-		//_PQntuples
-		int nFields = PQnfields(res);
-		for (int i = 0; i < PQntuples(res); i++) {
-			std::vector<char*>*rows = new std::vector<char*>();
-			for (int j = 0; j < nFields; j++) {
-				char* c = PQgetvalue(res, i, j);
-				char* copy = new char[strlen(c) + 1];
-				strcpy(copy, c);
-				rows->push_back(copy);
-			}
-			func(i, *rows);
-			free(rows);
-		}
-	}
-	else set_error();
-	PQclear(res);
-	return (exists == true) ? 0 : -1;
-};
+#endif//!_pgsql_lib_h
