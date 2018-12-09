@@ -11,7 +11,6 @@ PgSQL C++ Wrapper for web_jsx (CGI Application)<br/>
 ```
 #Initialize sow.npgsql.dll
 ```c++
-const char* pg_conn = "Server=localhost; Port=5432; UserId=postgres;Password=*****;Database=sow; keepalive=10; CommandTimeout=100000;";
 npgsql* pgsql = new npgsql();
 int rec = !pgsql->is_iniit ? -1 : 0;
 if (rec < 0) {
@@ -20,6 +19,7 @@ if (rec < 0) {
 ```
 #Connect to PostgreSQL
 ```c++
+const char* pg_conn = "Server=localhost; Port=5432; UserId=postgres;Password=*****;Database=sow; keepalive=10; CommandTimeout=100000;";
 rec = pgsql->connect(pg_conn);
 if (rec < 0) {
 	std::cout << "Unable to connect db==>" << pgsql->lib_absolute_path << "<br/>";
