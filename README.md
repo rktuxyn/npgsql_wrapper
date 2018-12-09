@@ -1,4 +1,4 @@
-# npgsql_wrapper
+# npgsql_wrapper (C++)
 PgSQL C++ Wrapper for web_jsx (CGI Application)
 ```c++
 const char* pg_conn = "Server=localhost; Port=5432; UserId=postgres;Password=*****;Database=sow; keepalive=10; CommandTimeout=100000;";
