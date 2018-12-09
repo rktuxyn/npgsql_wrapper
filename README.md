@@ -1,5 +1,5 @@
 # npgsql_wrapper
-PgSQLC++ Wrapper for web_jsx (CGI Application)
+PgSQL C++ Wrapper for web_jsx (CGI Application)
 ```c++
 const char* pg_conn = "Server=localhost; Port=5432; UserId=postgres;Password=*****;Database=sow; keepalive=10; CommandTimeout=100000;";
 npgsql* pgsql = new npgsql();
