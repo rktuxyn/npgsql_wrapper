@@ -18,6 +18,14 @@ if (rec < 0) {
 	std::cout << "UNABLE TO LOAD PGSQL LIB==>" << pgsql->lib_absolute_path << "<br/>";
 }
 ```
+#Connect to PostgreSQL
+```c++
+rec = pgsql->connect(pg_conn);
+if (rec < 0) {
+	std::cout << "Unable to connect db==>" << pgsql->lib_absolute_path << "<br/>";
+	return __reslut;
+};
+```
 #Call to Stored Procedure with param
 ```c++
 std::list<npgsql_params*>* sql_param = new std::list<npgsql_params*>();
