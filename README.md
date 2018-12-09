@@ -1,6 +1,6 @@
 # npgsql_wrapper (C++)
 PgSQL C++ Wrapper for web_jsx (CGI Application)<br/>
-Include header file
+#Include header file
 ```c++
 #if !defined(_npgsql_h)
 #include <npgsql.h>
@@ -9,6 +9,7 @@ Include header file
 #include "npgsql_tools.h"
 #endif//_npgsql_tools_h
 ```
+#Initialize sow.npgsql.dll
 ```c++
 const char* pg_conn = "Server=localhost; Port=5432; UserId=postgres;Password=*****;Database=sow; keepalive=10; CommandTimeout=100000;";
 npgsql* pgsql = new npgsql();
