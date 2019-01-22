@@ -11,7 +11,7 @@
 #if !defined(_connection_state_h)
 #define _connection_state_h
 #pragma warning (disable : 4231)
-typedef NPGSQL_API enum {
+typedef enum {
 	OPEN,	
 	CLOSED
 } connection_state;

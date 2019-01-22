@@ -6,8 +6,10 @@
 */
 //2:16 AM 11/19/2018
 //#pragma warning(suppress : 4996)
-#pragma warning(disable : 4996)
 #pragma once
+#if !defined(_pgsql_lib_h)
+#pragma warning(disable : 4996)
+#define _pgsql_lib_h
 #if !defined(_npgsql_global_h)
 #include "npgsql_global.h"
 #endif//!_global_h
@@ -20,8 +22,6 @@
 #if !defined(POSTGRES_EXT_H)
 #include <postgres_ext.h>
 #endif//!POSTGRES_EXT_H
-#if !defined(_pgsql_lib_h)
-#define _pgsql_lib_h
 #if !(defined(_WIN32)||defined(_WIN64)) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
 #define LIBPQ_C_DLL				"libpq.so.5"
 #else

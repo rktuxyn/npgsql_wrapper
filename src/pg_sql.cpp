@@ -5,7 +5,6 @@
 * See the accompanying LICENSE file for terms.
 */
 #include "pg_sql.h"
-
 pg_sql::pg_sql() {
 	_pq_error_text = new char;
 	_n_error_text = new char;

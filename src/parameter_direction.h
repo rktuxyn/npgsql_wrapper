@@ -6,7 +6,7 @@
 #if !defined(_parameter_direction_h)
 #define _parameter_direction_h
 #pragma warning (disable : 4231)
-typedef NPGSQL_API enum  {
+typedef enum  {
 	//
 	// Summary:
 	//     The parameter is an input parameter.

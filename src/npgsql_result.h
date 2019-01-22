@@ -11,7 +11,7 @@
 #if !defined(_npgsql_result_h)
 #define _npgsql_result_h
 #pragma warning (disable : 4231)
-typedef NPGSQL_API struct {
+typedef struct {
 	int ret_val;
 	const char* ret_msg;
 	char* ret_data_table;

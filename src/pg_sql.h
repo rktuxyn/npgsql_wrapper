@@ -6,8 +6,10 @@
 */
 //2:16 AM 11/19/2018
 //#pragma warning(suppress : 4996)
-#pragma warning(disable : 4996)
 #pragma once
+#if !defined(_pg_sql_h)
+#pragma warning(disable : 4996)
+#define _pg_sql_h
 #if !defined(_npgsql_global_h)
 #include "npgsql_global.h"
 #endif//!_global_h
@@ -20,18 +22,16 @@
 #if !defined(POSTGRES_EXT_H)
 #include <postgres_ext.h>
 #endif//!POSTGRES_EXT_H
-#if !defined(_pg_sql_h)
-#define _pg_sql_h
 class pg_sql {
 private:
 	bool							_connected;
 	PGconn*							_conn;
 	PGresult*						_pg_result;
-	int							_cursor_rows_fetched;
+	int								_cursor_rows_fetched;
 	size_t							_copy_cols_count;
-	int							_n_error;
+	int								_n_error;
 	char*							_n_error_text;
-	int							_pq_error;
+	int								_pq_error;
 	char*							_pq_error_text;
 public:
 	pg_sql();
@@ -52,14 +52,13 @@ public:
 		PGresult *res = PQexec(_conn, query);
 		if (PQresultStatus(res) == PGRES_TUPLES_OK) {
 			exists = true;
-			//_PQntuples
 			int nFields = PQnfields(res);
 			for (int i = 0; i < PQntuples(res); i++) {
 				std::vector<char*>*rows = new std::vector<char*>();
 				for (int j = 0; j < nFields; j++) {
 					char* c = PQgetvalue(res, i, j);
 					char* copy = new char[strlen(c) + 1];
-					strcpy(copy, c);
+					strcpy_s(copy, strlen(c), c);
 					rows->push_back(copy);
 				}
 				func(i, *rows);

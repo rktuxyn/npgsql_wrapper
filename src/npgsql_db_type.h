@@ -6,7 +6,7 @@
 #if !defined(_npgsql_db_type_h)
 #define _npgsql_db_type_h
 #pragma warning (disable : 4231)
-typedef NPGSQL_API enum  {
+typedef enum  {
 	COMMON = -1,
 	NULL_=-2,
 	

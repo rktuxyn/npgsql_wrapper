@@ -6,14 +6,9 @@
 */
 #include "pgsql_lib.h"
 LPWSTR s2ws(const char* s) {
-	/*wchar_t wtext[FILENAME_MAX];
-	mbstowcs(wtext, s, strlen(s) + 1);//Plus null
-	LPWSTR ptr = wtext;*/
-	//size_t wn = mbsrtowcs(NULL, &s, 0, NULL);
-	wchar_t * buf = new wchar_t[MAX_PATH]();
-	mbsrtowcs(buf, &s, MAX_PATH, NULL);
+	wchar_t * buf = new wchar_t[_MAX_PATH]();
+	mbsrtowcs(buf, &s, _MAX_PATH, NULL);
 	LPWSTR& ptr = buf;
-	//delete[] buf;
 	return ptr;
 };
 pg_sql_lib::pg_sql_lib() {
