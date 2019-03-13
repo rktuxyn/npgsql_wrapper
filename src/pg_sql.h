@@ -22,6 +22,8 @@
 #if !defined(POSTGRES_EXT_H)
 #include <postgres_ext.h>
 #endif//!POSTGRES_EXT_H
+//libpq.lib
+//libeay32.dll, libiconv-2.dll, libintl-8.dll, libpq.dll, ssleay32.dll, zlib1.dll
 class pg_sql {
 private:
 	bool							_connected;
@@ -52,6 +54,7 @@ public:
 		PGresult *res = PQexec(_conn, query);
 		if (PQresultStatus(res) == PGRES_TUPLES_OK) {
 			exists = true;
+			//_PQntuples
 			int nFields = PQnfields(res);
 			for (int i = 0; i < PQntuples(res); i++) {
 				std::vector<char*>*rows = new std::vector<char*>();
@@ -59,6 +62,7 @@ public:
 					char* c = PQgetvalue(res, i, j);
 					char* copy = new char[strlen(c) + 1];
 					strcpy_s(copy, strlen(c), c);
+					//strcpy(copy, c);
 					rows->push_back(copy);
 				}
 				func(i, *rows);
