@@ -28,7 +28,7 @@ class pg_sql {
 private:
 	bool							_connected;
 	PGconn*							_conn;
-	PGresult*						_pg_result;
+	//PGresult*						_pg_result;
 	int								_cursor_rows_fetched;
 	size_t							_copy_cols_count;
 	int								_n_error;
@@ -42,43 +42,63 @@ public:
 	virtual const char * get_last_error();
 	// Connect to the database
 	virtual int connect(const char *conn);
+	// Close database connection
 	virtual void exit_nicely();
 	virtual int get_row_count(const char *object, char *value);
-	virtual int execute_scalar(const char *query, char *value);
+	virtual const char* execute_cmd(const char *command, int&ret);
+	virtual const char* execute_query(const char *query, int&ret);
 	template<class _func>
-	int execute_scalar(const char *query, _func func) {
-		if ((query != NULL) && (query[0] == '\0')) {
+	int execute_scalar(const char *query, _func fn) {
+		if (((query != NULL) && (query[0] == '\0')) || query == NULL) {
+			panic("SQL Statement required!!!");
 			return -1;
 		}
 		bool exists = false;
 		PGresult *res = PQexec(_conn, query);
-		if (PQresultStatus(res) == PGRES_TUPLES_OK) {
+		ExecStatusType exs_type = PQresultStatus(res);
+		if (exs_type == PGRES_FATAL_ERROR) goto _ERROR;
+		if (exs_type == PGRES_NONFATAL_ERROR) goto _ERROR;
+		if (exs_type == PGRES_TUPLES_OK) {
 			exists = true;
-			//_PQntuples
 			int nFields = PQnfields(res);
+			size_t len = 0;
 			for (int i = 0; i < PQntuples(res); i++) {
 				std::vector<char*>*rows = new std::vector<char*>();
 				for (int j = 0; j < nFields; j++) {
 					char* c = PQgetvalue(res, i, j);
-					char* copy = new char[strlen(c) + 1];
-					strcpy_s(copy, strlen(c), c);
-					//strcpy(copy, c);
+					len = strlen(c);
+					char* copy = new char[len + 1];
+					//strcpy_s(copy, len, c);
+					strcpy(copy, c);
 					rows->push_back(copy);
+					//free(c);
 				}
-				func(i, *rows);
+				fn(i, *rows);
 				free(rows);
 			}
+			goto _END;
 		}
-		else set_error();
+
+		if (exs_type == PGRES_COMMAND_OK) { 
+			exists = true; goto _END;
+		}
+		panic("Invalid response defined!!!!");
+		exists = false;
+		goto _END;
+	_ERROR:
+		panic();
+		goto _END;
+	_END:
+		/*Delete execution result*/
 		PQclear(res);
 		return (exists == true) ? 0 : -1;
 	};
 	virtual int execute_scalar_x(const char *query, std::list<std::string>&out_param_array, std::map<std::string, char*>&out_param_map);
 	virtual int execute_non_query(const char *query);
 private:
-	virtual void parse_connection_string(const char *conn, std::string& user, std::string& pwd, std::string& server, std::string& port, std::string& db);
-	virtual void set_error(const char* std_error_msg);
-	virtual void set_error();
+	virtual int parse_connection_string(const char *conn, std::string& user, std::string& pwd, std::string& server, std::string& port, std::string& db);
+	virtual void panic(const char* std_error_msg);
+	virtual void panic();
 };
 //5:30 AM 11/19/2018 Connected
 //7:55 AM 11/19/2018 END

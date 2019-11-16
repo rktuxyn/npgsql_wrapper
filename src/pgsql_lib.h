@@ -109,7 +109,7 @@ public:
 	virtual int execute_scalar(const char *query, char *value);
 	template<class _func>
 	int execute_scalar(const char *query, _func func) {
-		if ((query != NULL) && (query[0] == '\0')) {
+		if (((query != NULL) && (query[0] == '\0')) || query == NULL) {
 			return -1;
 		}
 		bool exists = false;

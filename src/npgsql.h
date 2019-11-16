@@ -30,14 +30,13 @@
 #endif// !_REGEX_
 class NPGSQL_API npgsql {
 public:
-	bool is_iniit;
-	const char *  lib_absolute_path;
 	connection_state conn_state;
 private:
 	pg_sql* _pgsql;
 	const char* _conn;
 	char* _internal_error;
-	void set_error(const char* error);
+	void panic(const char* error);
+	int check_con_status();
 public:
 	npgsql(const char* lib_path);
 	npgsql();
@@ -53,6 +52,7 @@ public:
 	virtual int execute_io(const char *sp, const char *login_id, const char *form_data, std::map<std::string, char*>& result);
 	// Execute the statement
 	virtual int execute_non_query(const char *query);
+	virtual const char* execute_query(const char * query, int&rec);
 	template<class _func>
 	int execute_scalar(const char *query, _func func);
 	template<class _func>
@@ -68,89 +68,83 @@ inline int npgsql::execute_scalar(const char * query, _func func) {
 };
 
 template<class _func>
-inline int npgsql::execute_scalar(const char * query, std::list<npgsql_params*>& sql_param, _func func) {
-	if (conn_state != connection_state::OPEN) {
-		set_error("Connection not open!!!");
-		return -1;
-	};
-	std::string* param_stmt = new std::string("");
+inline int npgsql::execute_scalar( const char* query, std::list<npgsql_params*>& sql_param, _func func ) {
+	if ( check_con_status() < 0 )return -1;
+	std::string* param_stmt = new std::string( "" );
 	int param_count = 0;
-	for (auto s = sql_param.begin(); s != sql_param.end(); ++s) {
+	for ( auto s = sql_param.begin(); s != sql_param.end(); ++s ) {
 		npgsql_params* param = *s;
-		if (param->direction != parameter_direction::Input) {
-			throw new std::exception("You should pass input param");
+		if ( param->direction != parameter_direction::Input ) {
+			throw new std::exception( "You should pass input param" );
 		}
-		std::string* val = new std::string(param->value);
-		quote_literal(*val);
-		if (param_count == 0) {
+		std::string* val = new std::string( param->value );
+		quote_literal( *val );
+		if ( param_count == 0 ) {
 			param_count++;
-			param_stmt->append(" where ");
-			param_stmt->append(param->parameter_name);
-			param_stmt->append("=");
-			param_stmt->append(val->c_str());
-			free(val);
-			param_stmt->append("::");
-			param_stmt->append(get_db_type(param->db_type));
+			param_stmt->append( " where " );
+			param_stmt->append( param->parameter_name );
+			param_stmt->append( "=" );
+			param_stmt->append( val->c_str() );
+			free( val );
+			param_stmt->append( "::" );
+			param_stmt->append( get_db_type( param->db_type ) );
 			continue;
 		}
 		param_count++;
-		param_stmt->append(", ");
-		param_stmt->append(param->parameter_name);
-		param_stmt->append("=");
-		param_stmt->append(val->c_str());
-		free(val);
-		param_stmt->append("::");
-		param_stmt->append(get_db_type(param->db_type));
+		param_stmt->append( ", " );
+		param_stmt->append( param->parameter_name );
+		param_stmt->append( "=" );
+		param_stmt->append( val->c_str() );
+		free( val );
+		param_stmt->append( "::" );
+		param_stmt->append( get_db_type( param->db_type ) );
 	}
 	int ret = 0;
-	if (param_count <= 0) {
-		free(param_stmt);
-		ret = _pgsql->execute_scalar(query, func);
-	}
-	else {
-		std::string* stmt = new std::string(query);
-		stmt->append(param_stmt->c_str()); free(param_stmt);
-		ret = _pgsql->execute_scalar(stmt->c_str(), func);
-		free(stmt);
+	if ( param_count <= 0 ) {
+		free( param_stmt );
+		ret = _pgsql->execute_scalar( query, func );
+	} else {
+		std::string* stmt = new std::string( query );
+		stmt->append( param_stmt->c_str() ); free( param_stmt );
+		ret = _pgsql->execute_scalar( stmt->c_str(), func );
+		free( stmt );
 	}
 	return ret;
 }
 template<class _func>
-inline int npgsql::execute_scalar_l(const char * query, std::list<npgsql_param_type*>& sql_param, _func func) {
-	
-	std::string* _query = new std::string(query);
-	if (!sql_param.empty()) {
+inline int npgsql::execute_scalar_l( const char* query, std::list<npgsql_param_type*>& sql_param, _func func ) {
+	if ( check_con_status() < 0 )return -1;
+	std::string* _query = new std::string( query );
+	if ( !sql_param.empty() ) {
 		int count = 0;
-		for (auto itr = sql_param.begin(); itr != sql_param.end(); ++itr) {
+		for ( auto itr = sql_param.begin(); itr != sql_param.end(); ++itr ) {
 			count++;
-			std::string* str = new std::string("\\$");
-			str->append(std::to_string(count));
-			std::regex* re = new std::regex(*str);
+			std::string* str = new std::string( "\\$" );
+			str->append( std::to_string( count ) );
+			std::regex* re = new std::regex( *str );
 			npgsql_param_type* key = *itr;
 			std::string* val;
-			if (key->db_type == npgsql_db_type::NULL_) {
-				val = new std::string("null");
-			}
-			else {
-				val = new std::string(key->value);
-				if (key->db_type != npgsql_db_type::COMMON) {
-					val->append("::"); val->append(get_db_type(key->db_type));
-				}
-				else {
-					quote_literal(*val);
+			if ( key->db_type == npgsql_db_type::NULL_ ) {
+				val = new std::string( "null" );
+			} else {
+				val = new std::string( key->value );
+				if ( key->db_type != npgsql_db_type::COMMON ) {
+					val->append( "::" ); val->append( get_db_type( key->db_type ) );
+				} else {
+					quote_literal( *val );
 				}
 			}
-			std::string&copy = *_query;
-			copy = std::regex_replace(copy, *re, val->c_str());
-			std::cout << val->c_str() << "<br/>";
-			std::cout << copy << "<br/>";
-			free(str); free(re); free(val);
+			std::string& copy = *_query;
+			copy = std::regex_replace( copy, *re, val->c_str() );
+			//std::cout << val->c_str() << "<br/>";
+			//std::cout << copy << "<br/>";
+			free( str ); free( re ); free( val );
 		}
 	}
 	//std::cout << _query->c_str() << "<br/>";
-	int ret = _pgsql->execute_scalar(_query->c_str(), func);
-	free(_query);
+	int ret = _pgsql->execute_scalar( _query->c_str(), func );
+	//free(_query);
+	delete _query;
 	return ret;
 }
-;
 #endif // !npgsql_h

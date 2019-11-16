@@ -12,7 +12,7 @@
 #define _connection_state_h
 #pragma warning (disable : 4231)
 typedef enum {
-	OPEN,	
-	CLOSED
+	OPEN = 1,
+	CLOSED = 0
 } connection_state;
 #endif//!_parameter_direction_h

@@ -151,7 +151,7 @@ void pg_sql_lib::exit_nicely() {
 };
 // Get row count for the specified object
 int pg_sql_lib::get_row_count(const char *object, char *value) {
-	if ((object != NULL) && (object[0] == '\0')) {
+	if (((object != NULL) && (object[0] == '\0')) || object == NULL) {
 		return -1;
 	}
 	std::string query = "SELECT COUNT(*) FROM ";
@@ -180,7 +180,7 @@ int pg_sql_lib::execute_scalar(const char *query, char *value) {
 //https://www.postgresql.org/docs/8.3/libpq-example.html
 // Execute the statement and get scalar result
 int pg_sql_lib::execute_scalar_x(const char *query, std::list< std::string>&out_param_array, std::map<std::string, char*>&out_param_map) {
-	if ((query != NULL) && (query[0] == '\0')) {
+	if (((query != NULL) && (query[0] == '\0')) || query == NULL) {
 		return -1;
 	}
 	bool exists = false;
@@ -210,7 +210,7 @@ int pg_sql_lib::execute_scalar_x(const char *query, std::list< std::string>&out_
 };
 // Execute the statement
 int pg_sql_lib::execute_non_query(const char *query) {
-	if ((query != NULL) && (query[0] == '\0')) {
+	if (((query != NULL) && (query[0] == '\0')) || query == NULL) {
 		return -1;
 	}
 	// Execute the query
