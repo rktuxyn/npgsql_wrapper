@@ -1,5 +1,5 @@
 # npgsql_wrapper (C++)
-PgSQL C++ Wrapper for web_jsx (CGI Application)<br/>
+PgSQL C++ Wrapper for web_jsx (FCGI/CGI Application)<br/>
 #Include header file
 ```c++
 #if !defined(_npgsql_h)
