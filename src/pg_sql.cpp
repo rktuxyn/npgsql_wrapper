@@ -8,12 +8,19 @@
 pg_sql::pg_sql() {
 	_pq_error_text = new char;
 	_n_error_text = new char;
+	_connected = false;
+	_conn = NULL; _n_error = 0; _pq_error = 0;
+	_is_disposed = 0;
 };
 pg_sql::~pg_sql() {
+	if (_is_disposed != 0 )return;
+	//if (_conn == NULL)return;
+	_is_disposed = 1;
 	if (_connected) { exit_nicely(); }
 	//_pg_result = NULL;
-	_conn = NULL; 
+	_conn = NULL;
 	delete _pq_error_text; delete _n_error_text;
+	_pq_error_text = NULL; _n_error_text = NULL;
 };
 int pg_sql::parse_connection_string(const char * conn, std::string & user, std::string & pwd, std::string & server, std::string & port, std::string & db) {
 	if (((conn != NULL) && (conn[0] == '\0')) || conn == NULL) {
@@ -32,12 +39,12 @@ int pg_sql::parse_connection_string(const char * conn, std::string & user, std::
 		if (conn_obj.find(key) != conn_obj.end()) {
 			key = "Duplicate key found in connection string	==> `" + key + "`!!!";
 			panic(key.c_str());
-			free(query);
+			query->clear(); delete query;
 			goto _ERROR;
 		}
 		conn_obj[key] = value;
 	};
-	free(query);
+	query->clear(); delete query;
 	user = conn_obj["UserId"];
 	if (user.empty()) {
 		panic("No user defined (e.g. postgress) in given connection string as `UserId`!!!");
@@ -65,9 +72,10 @@ int pg_sql::parse_connection_string(const char * conn, std::string & user, std::
 	}
 	goto _END;
 _ERROR:
+	conn_obj.clear();
 	return _n_error;
 _END:
-	conn_obj.clear();
+	//conn_obj.clear();
 	return 1;
 };
 int pg_sql::connect(const char *conn) {
@@ -107,7 +115,8 @@ _ERROR:
 	goto _END;
 
 _END:
-	free(user); free(pwd); free(server); free(port); free(db);
+	user->clear(); pwd->clear(); server->clear(); port->clear(); db->clear();
+	delete user; delete pwd; delete server; delete port; delete db;
 	return ret;
 	//set_error(std::to_string(ret).c_str());
 	//return  -1;
@@ -116,7 +125,8 @@ void pg_sql::exit_nicely() {
 	if (!_connected)return;
 	if (_conn != NULL) {
 		/*close the connection to the database and cleanup*/
-		PQfinish (_conn);
+		PQfinish(_conn); _conn = NULL;
+		_connected = false;
 	}
 	return;
 }
@@ -241,7 +251,7 @@ int pg_sql::execute_scalar_x(const char *query, std::list< std::string>&out_para
 				char* copy_resp = new char[len + 1];
 				//strcpy_s(copy_resp, len, resp);
 				strcpy(copy_resp, resp);
-				out_param_map[prop] = copy_resp;
+				out_param_map[prop.c_str()] = copy_resp;
 				field_map++;
 				//free(resp);
 			}

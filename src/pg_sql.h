@@ -6,7 +6,9 @@
 */
 //2:16 AM 11/19/2018
 //#pragma warning(suppress : 4996)
+#if defined(_MSC_VER)
 #pragma once
+#endif//!_MSC_VER
 #if !defined(_pg_sql_h)
 #pragma warning(disable : 4996)
 #define _pg_sql_h
@@ -28,13 +30,11 @@ class pg_sql {
 private:
 	bool							_connected;
 	PGconn*							_conn;
-	//PGresult*						_pg_result;
-	int								_cursor_rows_fetched;
-	size_t							_copy_cols_count;
 	int								_n_error;
 	char*							_n_error_text;
 	int								_pq_error;
 	char*							_pq_error_text;
+	int								_is_disposed;
 public:
 	pg_sql();
 	~pg_sql();
@@ -74,7 +74,7 @@ public:
 					//free(c);
 				}
 				fn(i, *rows);
-				free(rows);
+				delete rows;
 			}
 			goto _END;
 		}

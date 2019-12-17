@@ -4,6 +4,9 @@
 * Copyrights licensed under the New BSD License.
 * See the accompanying LICENSE file for terms.
 */
+#if defined(_MSC_VER)
+#pragma once
+#endif//!_MSC_VER
 #if !defined(_os_support_h)
 #define _os_support_h
 #ifndef _WINDOWS_

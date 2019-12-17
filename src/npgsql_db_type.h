@@ -1,5 +1,7 @@
 //5:27 PM 11/19/2018
+#if defined(_MSC_VER)
 #pragma once
+#endif//!_MSC_VER
 #if !defined(_npgsql_global_h)
 #include "npgsql_global.h"
 #endif//!_global_h
@@ -402,6 +404,8 @@ static const char* get_db_type(npgsql_db_type db_type) {
 	case npgsql_db_type::Jsonb:return "jsonb";
 	case npgsql_db_type::Varchar:return "varchar";
 	case npgsql_db_type::Boolean:return "boolean";
+	case npgsql_db_type::Integer:return "integer";
+	//case npgsql_db_type::Array: return "integer";
 	default:return "unknown";
 	}
 };

@@ -1,5 +1,7 @@
 ////8:44 AM 11/19/2018 Start
+#if defined(_MSC_VER)
 #pragma once
+#endif//!_MSC_VER
 #if !defined(_npgsql_h)
 #pragma warning (disable : 4231)
 #define _npgsql_h
@@ -28,15 +30,25 @@
 #ifndef _REGEX_
 #include <regex>
 #endif// !_REGEX_
+//class npgsql;
+//typedef struct pg_conn_pool {
+//	struct pg_conn_pool* next;  /* pointer to next member*/
+//	pg_sql* pgsql;              /* PgSQL connection handle*/
+//	int busy;                   /* connection busy flag*/
+//}pg_connection_pool;
 class NPGSQL_API npgsql {
 public:
 	connection_state conn_state;
 private:
+	//pg_connection_pool _active_conn; //!TODO
 	pg_sql* _pgsql;
-	const char* _conn;
+	std::string* _conn;
 	char* _internal_error;
 	void panic(const char* error);
 	int check_con_status();
+protected:
+	int _is_disposed;
+	void create_instance();
 public:
 	npgsql(const char* lib_path);
 	npgsql();
@@ -44,9 +56,10 @@ public:
 	void quote_literal(std::string&str) {
 		str = "'" + str + "'";
 		return;
-	};
+	}
 	virtual const char * get_last_error();
 	virtual int connect(const char* conn);
+	virtual int connect();
 	virtual int execute_scalar(const char *query, char *result);
 	virtual int execute_scalar(const char *sp, std::list<npgsql_params*>&sql_param, std::map<std::string, char*>& result);
 	virtual int execute_io(const char *sp, const char *login_id, const char *form_data, std::map<std::string, char*>& result);
@@ -60,12 +73,13 @@ public:
 	template<class _func>
 	int execute_scalar_l(const char *query, std::list<npgsql_param_type*>&sql_param, _func func);
 	virtual int close();
+	virtual void release();
 };
 #pragma warning (default : 4231)
 template<class _func>
 inline int npgsql::execute_scalar(const char * query, _func func) {
 	return _pgsql->execute_scalar(query, func);
-};
+}
 
 template<class _func>
 inline int npgsql::execute_scalar( const char* query, std::list<npgsql_params*>& sql_param, _func func ) {
@@ -138,7 +152,8 @@ inline int npgsql::execute_scalar_l( const char* query, std::list<npgsql_param_t
 			copy = std::regex_replace( copy, *re, val->c_str() );
 			//std::cout << val->c_str() << "<br/>";
 			//std::cout << copy << "<br/>";
-			free( str ); free( re ); free( val );
+			str->clear(); val->clear();
+			delete str; delete re; delete val;
 		}
 	}
 	//std::cout << _query->c_str() << "<br/>";
