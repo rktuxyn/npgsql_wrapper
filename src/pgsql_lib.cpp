@@ -17,6 +17,7 @@ LPWSTR s2ws(const char* s) {
 	return ptr;
 };
 pg_sql_lib::pg_sql_lib() {
+	_connected = false;
 	_pg_result = NULL; _conn = NULL; _pgsql_proc_iddl = NULL; _pgsql_module = NULL;
 	_PQclear = NULL; _PQerrorMessage = NULL; _PQexec = NULL; _PQfmod = NULL;
 	_PQfname = NULL; _PQfsize = NULL; _PQftype = NULL; _PQgetisnull = NULL;
@@ -26,6 +27,8 @@ pg_sql_lib::pg_sql_lib() {
 	_PQconnectdb = NULL; _PQfinish = NULL;
 	_pq_error_text = new char;
 	_n_error_text = new char;
+	_n_error = 0; _pq_error = 0;
+	_copy_cols_count = 0; _cursor_rows_fetched = 0;
 };
 pg_sql_lib::~pg_sql_lib() {
 	if (_connected) { exit_nicely(); }
@@ -136,7 +139,8 @@ int pg_sql_lib::connect(const char *conn) {
 		(db->empty() ? NULL : db->c_str()),
 		(user->empty() ? NULL : user->c_str()),
 		(pwd->empty() ? NULL : pwd->c_str()));
-	free(user); free(pwd); free(server); free(port); free(db);
+	user->clear(); pwd->clear(); server->clear(); port->clear(); db->clear();
+	delete user; delete pwd; delete server; delete port; delete db;
 	if (_PQstatus(_conn) != CONNECTION_OK) {
 		set_error();
 		return -1;

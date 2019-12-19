@@ -1,9 +1,11 @@
 //5:27 PM 11/19/2018
+#if defined(_MSC_VER)
 #pragma once
+#endif//!_MSC_VER
 #if !defined(_npgsql_global_h)
 #include "npgsql_global.h"
 #endif//!_global_h
-#if !defined(_parameter_direction_h)
+#if !defined(_npgsql_params_h)
 #define _npgsql_params_h
 #if !defined(_parameter_direction_h)
 #include "parameter_direction.h"

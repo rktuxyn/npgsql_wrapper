@@ -6,7 +6,9 @@
 */
 //2:16 AM 11/19/2018
 //#pragma warning(suppress : 4996)
+#if defined(_MSC_VER)
 #pragma once
+#endif//!_MSC_VER
 #if !defined(_pgsql_lib_h)
 #pragma warning(disable : 4996)
 #define _pgsql_lib_h

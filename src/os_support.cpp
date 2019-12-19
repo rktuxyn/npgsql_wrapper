@@ -62,17 +62,21 @@ void os_support::get_last_error_text(const char *prefix, char *output, int len) 
 	// On Windows OS error messages terminated with 0D 0A 00, remove new lines
 	if (rc > 2 && error[rc - 2] == '\r')
 		error[rc - 2] = '\x0';
-
-	if (prefix != NULL) {
-		output = new char[strlen(prefix) + 1];
-		strcpy_s(output, sizeof output, prefix);
-	}
-	else
+	//
+	if (((prefix != NULL) && (prefix[0] == '\0')) || prefix == NULL) {
+	//if (prefix != NULL) {
 		*output = '\x0';
+	}
+	else {
+		size_t len = strlen(prefix) + 1;
+		output = new char[len];
+		strcpy_s(output, len + 1, prefix);
+	}
 	strcat_s(output, sizeof output, error);
 #endif
 };
 // Get current time in milliseconds
 size_t os_support::get_tick_count() {
-	return ::GetTickCount();
+	return (size_t)::GetTickCount64();
+	//return ::GetTickCount();
 };

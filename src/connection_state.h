@@ -4,7 +4,9 @@
 * Copyrights licensed under the New BSD License.
 * See the accompanying LICENSE file for terms.
 */
+#if defined(_MSC_VER)
 #pragma once
+#endif//!_MSC_VER
 #if !defined(_npgsql_global_h)
 #include "npgsql_global.h"
 #endif//!_global_h
