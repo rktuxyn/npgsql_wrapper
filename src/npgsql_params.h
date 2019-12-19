@@ -5,7 +5,7 @@
 #if !defined(_npgsql_global_h)
 #include "npgsql_global.h"
 #endif//!_global_h
-#if !defined(_parameter_direction_h)
+#if !defined(_npgsql_params_h)
 #define _npgsql_params_h
 #if !defined(_parameter_direction_h)
 #include "parameter_direction.h"

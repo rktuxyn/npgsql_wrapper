@@ -15,7 +15,7 @@
 #if !defined(_npgsql_db_type_h)
 #include "npgsql_db_type.h"
 #endif//!_npgsql_db_type_h
-#if !defined(_parameter_direction_h)
+#if !defined(_npgsql_params_h)
 #include "npgsql_params.h"
 #endif//!_parameter_direction_h
 #if !defined(_npgsql_param_type_h)
@@ -115,13 +115,13 @@ inline int npgsql::execute_scalar( const char* query, std::list<npgsql_params*>&
 	}
 	int ret = 0;
 	if ( param_count <= 0 ) {
-		free( param_stmt );
+		delete param_stmt;
 		ret = _pgsql->execute_scalar( query, func );
 	} else {
 		std::string* stmt = new std::string( query );
-		stmt->append( param_stmt->c_str() ); free( param_stmt );
+		stmt->append( param_stmt->c_str() ); 
 		ret = _pgsql->execute_scalar( stmt->c_str(), func );
-		free( stmt );
+		delete stmt; delete param_stmt;
 	}
 	return ret;
 }

@@ -41,6 +41,9 @@ int npgsql_connection::connect(pg_connection_info* conn){
 		return _errc;
 	}
 	pg_connection_pool* cpool = create_connection_pool();/** open one connection*/
+	if (cpool->conn_state != connection_state::OPEN) {
+		return -1;
+	}
 	if (_errc < 0)return _errc;
 	free_connection_pool(cpool);
 	return _errc;
@@ -60,7 +63,11 @@ int npgsql_connection::connect(){
 	if (validate_cinfo() < 0) {
 		return _errc;
 	}
+	close_all_connection();
 	pg_connection_pool* cpool = create_connection_pool();/** open one connection*/
+	if (cpool->conn_state != connection_state::OPEN) {
+		return -1;
+	}
 	if (_errc < 0)return _errc;
 	free_connection_pool(cpool);
 	return _errc;
@@ -90,8 +97,8 @@ pg_connection_pool* npgsql_connection::create_connection_pool() {
 			/*const char *pwd*/_conn_info->pwd->c_str()
 		);
 		if (PQstatus(cpool->conn) != CONNECTION_OK) {
-			panic(PQerrorMessage(cpool->conn));
 			cpool->error_code = -2;
+			panic(PQerrorMessage(cpool->conn));
 			cpool->error_msg = get_last_error();
 			cpool->conn_state = connection_state::CLOSED;
 			//_conn_state = connection_state::CLOSED;
@@ -104,8 +111,11 @@ pg_connection_pool* npgsql_connection::create_connection_pool() {
 		if (cpool->conn_state == connection_state::OPEN) {
 			cpool->error_code = 0;
 			cpool->error_msg = NULL;
+			cpool->busy = -1;
 		}
-		cpool->busy = 1;
+		else {
+			cpool->busy = 1;
+		}
 		cpool->next = _active_pools;
 		_active_pools = cpool;
 		if (_conn_state != connection_state::OPEN) {
@@ -255,15 +265,17 @@ int npgsql_connection::validate_cinfo(){
 }
 
 void npgsql_connection::panic(const char* error){
-	free(_internal_error);
+	if (_internal_error != NULL)
+		free(_internal_error);
 	_internal_error = new char[strlen(error) + 1];
 	strcpy(_internal_error, error);
 	_errc = -1;
 }
 
 void npgsql_connection::panic(char* erro_msg){
-	free(_internal_error);
-	size_t len = strlen(erro_msg);
-	_internal_error = new char[len + 1];
-	strcpy(_internal_error, erro_msg);
+	if (_internal_error != NULL)
+		free(_internal_error);
+	_internal_error = new char[strlen(erro_msg) + 1];
+	strcpy(_internal_error, const_cast<const char*>(erro_msg));
+	_errc = -1;
 }
