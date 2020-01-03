@@ -109,7 +109,7 @@ void pg_sql_lib::parse_connection_string(const char * conn, std::string & user, 
 		std::string value = (*i)[2].str();
 		conn_obj[key] = value;
 	};
-	free(query);
+	delete query;
 	user = conn_obj["UserId"];
 	pwd = conn_obj["Password"];
 	db = conn_obj["Database"];

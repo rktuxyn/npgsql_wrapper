@@ -5,6 +5,13 @@
 * See the accompanying LICENSE file for terms.
 */
 #include "npgsql_connection.h"
+/*Delete execution result*/
+void clear_response(PGconn* conn) {
+	PGresult* res;
+	while ((res = PQgetResult(conn))) {
+		PQclear(res);
+	}
+}
 npgsql_connection::npgsql_connection() {
 	_active_pools = NULL;
 	_internal_error = new char;
@@ -143,18 +150,21 @@ void npgsql_connection::exit_all(){
 }
 void npgsql_connection::exit_nicely(pg_connection_pool* cpool) {
 	if (cpool == NULL || (cpool != NULL && cpool->conn == NULL))return;
+	clear_response(cpool->conn);
 	PQfinish(cpool->conn); cpool->conn = NULL;
 	cpool->busy = -1;
 	cpool->conn_state = connection_state::CLOSED;
 	cpool->error_code = 0;
 	cpool->error_msg = NULL;
 }
+
 void npgsql_connection::close_all_connection(){
 	if (_conn_state == connection_state::CLOSED)return;
 	if (_active_pools == NULL)return;
 	pg_connection_pool* cpool;
 	for (cpool = _active_pools; cpool; cpool = cpool->next) {
 		if (cpool->busy < 0)continue;
+		clear_response(cpool->conn);
 		PQfinish(cpool->conn);
 	}
 	while (_active_pools) {
@@ -163,9 +173,14 @@ void npgsql_connection::close_all_connection(){
 		if (cpool->busy) {
 			//fprintf(stderr,"destroying Database object before Connect object(s)\n");
 		}
+		cpool->conn = NULL;
+		cpool->busy = -1;
+		cpool->error_msg = NULL;
 		delete cpool;
 	}
 	_conn_state = connection_state::CLOSED;
+	if (_active_pools != NULL)
+		delete _active_pools;
 	_active_pools = NULL;
 }
 

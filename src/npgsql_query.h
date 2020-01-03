@@ -53,6 +53,7 @@ private:
 	pg_connection_pool* _cpool;
 	int _errc;
 	char* _internal_error;
+	void clear_response();
 	void panic(const char* error);
 	void panic();
 };

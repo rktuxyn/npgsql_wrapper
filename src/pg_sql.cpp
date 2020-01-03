@@ -21,7 +21,13 @@ pg_sql::~pg_sql() {
 	_conn = NULL;
 	delete _pq_error_text; delete _n_error_text;
 	_pq_error_text = NULL; _n_error_text = NULL;
-};
+}
+void pg_sql::clear_response() {
+	PGresult* res;
+	while ((res = PQgetResult(_conn))) {
+		PQclear(res);
+	}
+}
 int pg_sql::parse_connection_string(const char * conn, std::string & user, std::string & pwd, std::string & server, std::string & port, std::string & db) {
 	if (((conn != NULL) && (conn[0] == '\0')) || conn == NULL) {
 		panic("No connection string found!!!");
@@ -124,6 +130,7 @@ _END:
 void pg_sql::exit_nicely() {
 	if (!_connected)return;
 	if (_conn != NULL) {
+		clear_response();
 		/*close the connection to the database and cleanup*/
 		PQfinish(_conn); _conn = NULL;
 		_connected = false;

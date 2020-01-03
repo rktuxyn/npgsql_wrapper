@@ -97,6 +97,7 @@ public:
 	virtual int execute_non_query(const char *query);
 private:
 	virtual int parse_connection_string(const char *conn, std::string& user, std::string& pwd, std::string& server, std::string& port, std::string& db);
+	virtual void clear_response();
 	virtual void panic(const char* std_error_msg);
 	virtual void panic();
 };

@@ -48,7 +48,7 @@ void os_support::sleep (unsigned int sec) {
 void os_support::get_last_error_text(const char *prefix, char *output, int len) {
 	if (output == NULL || len <= 0)
 		return;
-	char error[1024];
+	char error[2048];
 #if !(defined(_WIN32)||defined(_WIN64)) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
 	return;
 #else

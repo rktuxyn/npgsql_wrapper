@@ -18,7 +18,13 @@ npgsql_query::~npgsql_query() {
 		free(_internal_error);
 	}
 }
-
+/*Delete execution result*/
+void npgsql_query::clear_response() {
+	PGresult* res;
+	while ((res = PQgetResult(_cpool->conn))) {
+		PQclear(res);
+	}
+}
 void npgsql_query::free_connection(){
 	if ( _cpool ) {
 		_cpool->busy = 0;
@@ -60,7 +66,8 @@ _ERROR:
 	goto _END;
 _END:
 	/*Delete execution result*/
-	PQclear(res);
+	//PQclear(res);
+	clear_response();
 	return result;
 }
 void npgsql_query::exit_nicely() {
@@ -120,7 +127,8 @@ int npgsql_query::execute_scalar_x(const char* query, std::list<std::string>& ou
 		panic( ); goto _END;
 	_END:
 		/*Delete execution result*/
-		PQclear(res);
+		//PQclear(res);
+		clear_response();
 	}
 	catch (std::exception& e) {
 		panic(e.what());
@@ -152,7 +160,8 @@ int npgsql_query::execute_non_query(const char* query) {
 		error = true;
 	}
 	/*Delete execution result*/
-	PQclear(result);
+	clear_response();
+	//PQclear(result);
 	return (error == true) ? -1 : 0;
 }
 int npgsql_query::execute_scalar(const char* sp, std::list<npgsql_params*>& sql_param, std::map<std::string, char*>& result){
