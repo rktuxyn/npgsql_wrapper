@@ -11,13 +11,9 @@
 #if !defined(_npgsql_pool_h)
 #pragma warning (disable : 4231)
 #pragma warning(disable : 4996)
-#define _npgsql_pool_h
-#if !defined(_npgsql_connection_h)
-#include "npgsql_connection.h"
-#endif//!_npgsql_connection_h
-#if !defined(_npgsql_query_h)
-#include "npgsql_query.h"
-#endif//!_npgsql_connection_h
+#	define _npgsql_pool_h
+#	include "npgsql_connection.h"
+#	include "npgsql_query.h"
 class NPGSQL_API npgsql_pool {
 public:
 	npgsql_pool();

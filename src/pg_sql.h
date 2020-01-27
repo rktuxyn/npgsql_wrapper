@@ -5,25 +5,16 @@
 * See the accompanying LICENSE file for terms.
 */
 //2:16 AM 11/19/2018
-//#pragma warning(suppress : 4996)
 #if defined(_MSC_VER)
 #pragma once
 #endif//!_MSC_VER
 #if !defined(_pg_sql_h)
 #pragma warning(disable : 4996)
-#define _pg_sql_h
-#if !defined(_npgsql_global_h)
-#include "npgsql_global.h"
-#endif//!_global_h
-#if !defined(_os_support_h)
-#include "os_support.h"
-#endif
-#if !defined(LIBPQ_FE_H)
-#include <libpq-fe.h>
-#endif//!LIBPQ_FE_H
-#if !defined(POSTGRES_EXT_H)
-#include <postgres_ext.h>
-#endif//!POSTGRES_EXT_H
+#	define _pg_sql_h
+#	include "npgsql_global.h"
+#	include "os_support.h"
+#	include <libpq-fe.h>
+#	include <postgres_ext.h>
 //libpq.lib
 //libeay32.dll, libiconv-2.dll, libintl-8.dll, libpq.dll, ssleay32.dll, zlib1.dll
 class pg_sql {

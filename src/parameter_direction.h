@@ -2,12 +2,8 @@
 #if defined(_MSC_VER)
 #pragma once
 #endif//!_MSC_VER
-#if !defined(_npgsql_global_h)
-#include "npgsql_global.h"
-#endif//!_global_h
 #if !defined(_parameter_direction_h)
-#define _parameter_direction_h
-#pragma warning (disable : 4231)
+#	define _parameter_direction_h
 typedef enum  {
 	//
 	// Summary:

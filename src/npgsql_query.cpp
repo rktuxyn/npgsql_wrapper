@@ -4,7 +4,7 @@
 * Copyrights licensed under the New BSD License.
 * See the accompanying LICENSE file for terms.
 */
-#include "npgsql_query.h"
+#	include "npgsql_query.h"
 
 npgsql_query::npgsql_query(pg_connection_pool* cpool){
 	_cpool = cpool;

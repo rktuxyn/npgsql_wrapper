@@ -4,38 +4,16 @@
 #endif//!_MSC_VER
 #if !defined(_npgsql_h)
 #pragma warning (disable : 4231)
-#define _npgsql_h
-#if !defined(_npgsql_global_h)
-#include "npgsql_global.h"
-#endif//!_global_h
+#	define _npgsql_h
+#	include "npgsql_global.h"
 //5:27 PM 11/19/2018
-#if !defined(_pg_sql_h)
-#include "pg_sql.h"
-#endif//!_global_h
-#if !defined(_npgsql_db_type_h)
-#include "npgsql_db_type.h"
-#endif//!_npgsql_db_type_h
-#if !defined(_npgsql_params_h)
-#include "npgsql_params.h"
-#endif//!_parameter_direction_h
-#if !defined(_npgsql_param_type_h)
-#include "npgsql_param_type.h"
-#endif//!_npgsql_param_type_h
-#if !defined(_npgsql_result_h)
-#include "npgsql_result.h"
-#endif//!_npgsql_result_h
-#if !defined(_connection_state_h)
-#include "connection_state.h"
-#endif//!_connection_state_h
-#ifndef _REGEX_
-#include <regex>
-#endif// !_REGEX_
-//class npgsql;
-//typedef struct pg_conn_pool {
-//	struct pg_conn_pool* next;  /* pointer to next member*/
-//	pg_sql* pgsql;              /* PgSQL connection handle*/
-//	int busy;                   /* connection busy flag*/
-//}pg_connection_pool;
+#	include "pg_sql.h"
+#	include "npgsql_db_type.h"
+#	include "npgsql_params.h"
+#	include "npgsql_param_type.h"
+#	include "npgsql_result.h"
+#	include "connection_state.h"
+#	include <regex>
 class NPGSQL_API npgsql {
 public:
 	connection_state conn_state;

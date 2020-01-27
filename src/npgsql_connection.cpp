@@ -4,7 +4,7 @@
 * Copyrights licensed under the New BSD License.
 * See the accompanying LICENSE file for terms.
 */
-#include "npgsql_connection.h"
+#	include "npgsql_connection.h"
 /*Delete execution result*/
 void clear_response(PGconn* conn) {
 	PGresult* res;
@@ -281,7 +281,7 @@ int npgsql_connection::validate_cinfo(){
 
 void npgsql_connection::panic(const char* error){
 	if (_internal_error != NULL)
-		free(_internal_error);
+		delete[]_internal_error;
 	_internal_error = new char[strlen(error) + 1];
 	strcpy(_internal_error, error);
 	_errc = -1;

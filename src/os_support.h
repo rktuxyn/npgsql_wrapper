@@ -8,14 +8,12 @@
 #pragma once
 #endif//!_MSC_VER
 #if !defined(_os_support_h)
-#define _os_support_h
-#ifndef _WINDOWS_
-#include <windows.h>
-#endif//!_WINDOWS_
-#ifndef _IOSTREAM_
-#include <iostream>
-#endif//!_IOSTREAM_
-#include <stdio.h>
+#	define _os_support_h
+#if defined(WIN32) || defined(_WIN64)
+#	include <windows.h>
+#endif//!WIN32
+#	include <iostream>
+#	include <stdio.h>
 class os_support {
 public:
 #if defined(WIN32) || defined(_WIN64)

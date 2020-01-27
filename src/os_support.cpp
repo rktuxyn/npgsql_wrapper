@@ -4,7 +4,7 @@
 * Copyrights licensed under the New BSD License.
 * See the accompanying LICENSE file for terms.
 */
-#include "os_support.h"
+#	include "os_support.h"
 #if !(defined(_WIN32)||defined(_WIN64)) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
 HMODULE os_support::load_library(LPCWSTR * name) {
 	return HMODULE();
@@ -21,13 +21,13 @@ void* os_support::get_proc_address(void* module, const char *name) {
 HMODULE os_support::load_library(LPCWSTR name) {
 	//return ::LoadLibrary(name);
 	return LoadLibraryEx(name, NULL, 0x00000008);
-};
+}
 void* os_support::get_proc_address(HMODULE module, const char *name) {
 	return ::GetProcAddress(module, name);
-};
+}
 void os_support::get_module_file_name(HMODULE module, char *out_path, int len) {
 	::GetModuleFileName(module, (LPWSTR)out_path, (DWORD)len);
-};
+}
 #endif
 char* os_support::load_library_error() {
 #if !(defined(_WIN32)||defined(_WIN64)) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
