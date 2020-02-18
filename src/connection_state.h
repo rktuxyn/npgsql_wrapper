@@ -7,14 +7,11 @@
 #if defined(_MSC_VER)
 #pragma once
 #endif//!_MSC_VER
-#if !defined(_npgsql_global_h)
-#include "npgsql_global.h"
-#endif//!_global_h
 #if !defined(_connection_state_h)
-#define _connection_state_h
-#pragma warning (disable : 4231)
+#	define _connection_state_h
+//#pragma warning (disable : 4231)
 typedef enum {
 	OPEN = 1,
 	CLOSED = 0
 } connection_state;
-#endif//!_parameter_direction_h
+#endif//!_connection_state_h

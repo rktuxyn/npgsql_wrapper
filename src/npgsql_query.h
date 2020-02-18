@@ -11,22 +11,12 @@
 #if !defined(_npgsql_query_h)
 #pragma warning (disable : 4231)
 #pragma warning(disable : 4996)//Disable strcpy warning
-#define _npgsql_query_h
-#if !defined(_npgsql_connection_h)
-#include "npgsql_connection.h"
-#endif//!_npgsql_connection_h
-#if !defined(_npgsql_db_type_h)
-#include "npgsql_db_type.h"
-#endif//!_npgsql_db_type_h
-#if !defined(_npgsql_params_h)
-#include "npgsql_params.h"
-#endif//!_parameter_direction_h
-#if !defined(_npgsql_param_type_h)
-#include "npgsql_param_type.h"
-#endif//!_npgsql_param_type_h
-#if !defined(_npgsql_result_h)
-#include "npgsql_result.h"
-#endif//!_npgsql_result_h
+#	define _npgsql_query_h
+#	include "npgsql_connection.h"
+#	include "npgsql_db_type.h"
+#	include "npgsql_params.h"
+#	include "npgsql_param_type.h"
+#	include "npgsql_result.h"
 class NPGSQL_API npgsql_query {
 public:
 	npgsql_query(pg_connection_pool* cpool);
@@ -53,6 +43,7 @@ private:
 	pg_connection_pool* _cpool;
 	int _errc;
 	char* _internal_error;
+	void clear_response();
 	void panic(const char* error);
 	void panic();
 };

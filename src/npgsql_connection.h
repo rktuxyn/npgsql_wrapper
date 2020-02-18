@@ -11,22 +11,18 @@
 #if !defined(_npgsql_connection_h)
 #pragma warning (disable : 4231)
 #pragma warning(disable : 4996)
-#define _npgsql_connection_h
-#if !defined(_npgsql_global_h)
-#include "npgsql_global.h"
-#endif//!_global_h
-#if !defined(LIBPQ_FE_H)
-#include <libpq-fe.h>
-#endif//!LIBPQ_FE_H
-#if !defined(POSTGRES_EXT_H)
-#include <postgres_ext.h>
-#endif//!POSTGRES_EXT_H
-#if !defined(_connection_state_h)
-#include "connection_state.h"
-#endif//!_connection_state_h
-#ifndef _REGEX_
-#include <regex>
-#endif// !_REGEX_
+#	define _npgsql_connection_h
+#	include "npgsql_global.h"
+#	include <libpq-fe.h>
+#	include <postgres_ext.h>
+#	include "connection_state.h"
+#	include <regex>
+#if !defined(_free_obj)
+#	define _free_obj(obj)\
+while(obj){\
+	obj->clear();delete obj;obj = NULL;\
+}
+#endif//!_free_obj
 typedef struct pg_conn_pool {
 	struct pg_conn_pool* next;  /* pointer to next member*/
 	PGconn* conn;              /* PgSQL connection handle*/
@@ -44,7 +40,7 @@ typedef struct {
 }pg_connection_info;
 class NPGSQL_API npgsql_connection {
 public:
-	npgsql_connection();
+	explicit npgsql_connection();
 	~npgsql_connection();
 	int connect(pg_connection_info* conn);
 	int connect(const char* conn);

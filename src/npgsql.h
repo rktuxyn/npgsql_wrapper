@@ -4,38 +4,23 @@
 #endif//!_MSC_VER
 #if !defined(_npgsql_h)
 #pragma warning (disable : 4231)
-#define _npgsql_h
-#if !defined(_npgsql_global_h)
-#include "npgsql_global.h"
-#endif//!_global_h
+#	define _npgsql_h
+#	include "npgsql_global.h"
 //5:27 PM 11/19/2018
-#if !defined(_pg_sql_h)
-#include "pg_sql.h"
-#endif//!_global_h
-#if !defined(_npgsql_db_type_h)
-#include "npgsql_db_type.h"
-#endif//!_npgsql_db_type_h
-#if !defined(_npgsql_params_h)
-#include "npgsql_params.h"
-#endif//!_parameter_direction_h
-#if !defined(_npgsql_param_type_h)
-#include "npgsql_param_type.h"
-#endif//!_npgsql_param_type_h
-#if !defined(_npgsql_result_h)
-#include "npgsql_result.h"
-#endif//!_npgsql_result_h
-#if !defined(_connection_state_h)
-#include "connection_state.h"
-#endif//!_connection_state_h
-#ifndef _REGEX_
-#include <regex>
-#endif// !_REGEX_
-//class npgsql;
-//typedef struct pg_conn_pool {
-//	struct pg_conn_pool* next;  /* pointer to next member*/
-//	pg_sql* pgsql;              /* PgSQL connection handle*/
-//	int busy;                   /* connection busy flag*/
-//}pg_connection_pool;
+#	include "pg_sql.h"
+#	include "npgsql_db_type.h"
+#	include "npgsql_params.h"
+#	include "npgsql_param_type.h"
+#	include "npgsql_result.h"
+#	include "connection_state.h"
+#	include <regex>
+
+#if !defined(_free_obj)
+#	define _free_obj(obj)\
+while(obj){\
+	obj->clear();delete obj;obj = NULL;\
+}
+#endif//!_free_obj
 class NPGSQL_API npgsql {
 public:
 	connection_state conn_state;
@@ -50,30 +35,30 @@ protected:
 	int _is_disposed;
 	void create_instance();
 public:
-	npgsql(const char* lib_path);
-	npgsql();
+	explicit npgsql(const char* lib_path);
+	explicit npgsql();
 	~npgsql();
 	void quote_literal(std::string&str) {
 		str = "'" + str + "'";
 		return;
 	}
-	virtual const char * get_last_error();
-	virtual int connect(const char* conn);
-	virtual int connect();
-	virtual int execute_scalar(const char *query, char *result);
-	virtual int execute_scalar(const char *sp, std::list<npgsql_params*>&sql_param, std::map<std::string, char*>& result);
-	virtual int execute_io(const char *sp, const char *login_id, const char *form_data, std::map<std::string, char*>& result);
+	const char * get_last_error();
+	int connect(const char* conn);
+	int connect();
+	int execute_scalar(const char *query, char *result);
+	int execute_scalar(const char *sp, std::list<npgsql_params*>&sql_param, std::map<std::string, char*>& result);
+	int execute_io(const char *sp, const char *login_id, const char *form_data, std::map<std::string, char*>& result);
 	// Execute the statement
-	virtual int execute_non_query(const char *query);
-	virtual const char* execute_query(const char * query, int&rec);
+	int execute_non_query(const char *query);
+	const char* execute_query(const char * query, int&rec);
 	template<class _func>
 	int execute_scalar(const char *query, _func func);
 	template<class _func>
 	int execute_scalar(const char *query, std::list<npgsql_params*>&sql_param, _func func);
 	template<class _func>
 	int execute_scalar_l(const char *query, std::list<npgsql_param_type*>&sql_param, _func func);
-	virtual int close();
-	virtual void release();
+	int close();
+	void release();
 };
 #pragma warning (default : 4231)
 template<class _func>
@@ -99,7 +84,7 @@ inline int npgsql::execute_scalar( const char* query, std::list<npgsql_params*>&
 			param_stmt->append( param->parameter_name );
 			param_stmt->append( "=" );
 			param_stmt->append( val->c_str() );
-			free( val );
+			_free_obj( val );
 			param_stmt->append( "::" );
 			param_stmt->append( get_db_type( param->db_type ) );
 			continue;
@@ -109,19 +94,19 @@ inline int npgsql::execute_scalar( const char* query, std::list<npgsql_params*>&
 		param_stmt->append( param->parameter_name );
 		param_stmt->append( "=" );
 		param_stmt->append( val->c_str() );
-		free( val );
+		_free_obj( val );
 		param_stmt->append( "::" );
 		param_stmt->append( get_db_type( param->db_type ) );
 	}
 	int ret = 0;
 	if ( param_count <= 0 ) {
-		delete param_stmt;
+		_free_obj(param_stmt);
 		ret = _pgsql->execute_scalar( query, func );
 	} else {
 		std::string* stmt = new std::string( query );
 		stmt->append( param_stmt->c_str() ); 
 		ret = _pgsql->execute_scalar( stmt->c_str(), func );
-		delete stmt; delete param_stmt;
+		_free_obj(stmt); _free_obj(param_stmt);
 	}
 	return ret;
 }
@@ -152,14 +137,12 @@ inline int npgsql::execute_scalar_l( const char* query, std::list<npgsql_param_t
 			copy = std::regex_replace( copy, *re, val->c_str() );
 			//std::cout << val->c_str() << "<br/>";
 			//std::cout << copy << "<br/>";
-			str->clear(); val->clear();
-			delete str; delete re; delete val;
+			_free_obj(str); delete re; _free_obj(val);
 		}
 	}
 	//std::cout << _query->c_str() << "<br/>";
 	int ret = _pgsql->execute_scalar( _query->c_str(), func );
-	//free(_query);
-	delete _query;
+	_free_obj(_query);
 	return ret;
 }
 #endif // !npgsql_h

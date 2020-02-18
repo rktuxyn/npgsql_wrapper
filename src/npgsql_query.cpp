@@ -4,21 +4,27 @@
 * Copyrights licensed under the New BSD License.
 * See the accompanying LICENSE file for terms.
 */
-#include "npgsql_query.h"
+#	include "npgsql_query.h"
 
 npgsql_query::npgsql_query(pg_connection_pool* cpool){
 	_cpool = cpool;
-	_internal_error = new char;
+	_internal_error = NULL;
 	_errc = 0;
 }
 
 npgsql_query::~npgsql_query() {
 	free_connection();
 	if (_internal_error != NULL) {
-		free(_internal_error);
+		delete[]_internal_error;
 	}
 }
-
+/*Delete execution result*/
+void npgsql_query::clear_response() {
+	PGresult* res;
+	while ((res = PQgetResult(_cpool->conn))) {
+		PQclear(res);
+	}
+}
 void npgsql_query::free_connection(){
 	if ( _cpool ) {
 		_cpool->busy = 0;
@@ -30,20 +36,20 @@ void npgsql_query::free_connection(){
 const char* npgsql_query::execute_query(const char* query, int& rec){
 	if (_cpool->conn_state == connection_state::CLOSED) {
 		panic("Connection state not opend!!!");
-		return '\0';
+		return NULL;
 	}
 	if (_cpool->conn == NULL) {
 		panic("No Connection instance found !!!");
-		return '\0';
+		return NULL;
 	}
 	if (((query != NULL) && (query[0] == '\0')) || query == NULL) {
 		panic("SQL Statement required!!!");
-		return '\0';
+		return NULL;
 	}
 	//https://timmurphy.org/2009/11/19/pqexecparams-example-postgresql-query-execution-with-parameters/
 	// Execute the statement
 	PGresult* res = PQexec(_cpool->conn, query);
-	const char* result = '\0';
+	const char* result = NULL;
 	ExecStatusType exs_type = PQresultStatus(res);
 	if (exs_type == PGRES_FATAL_ERROR) goto _ERROR;
 	if (exs_type == PGRES_NONFATAL_ERROR) goto _ERROR;
@@ -60,7 +66,8 @@ _ERROR:
 	goto _END;
 _END:
 	/*Delete execution result*/
-	PQclear(res);
+	//PQclear(res);
+	clear_response();
 	return result;
 }
 void npgsql_query::exit_nicely() {
@@ -120,7 +127,8 @@ int npgsql_query::execute_scalar_x(const char* query, std::list<std::string>& ou
 		panic( ); goto _END;
 	_END:
 		/*Delete execution result*/
-		PQclear(res);
+		//PQclear(res);
+		clear_response();
 	}
 	catch (std::exception& e) {
 		panic(e.what());
@@ -152,7 +160,8 @@ int npgsql_query::execute_non_query(const char* query) {
 		error = true;
 	}
 	/*Delete execution result*/
-	PQclear(result);
+	clear_response();
+	//PQclear(result);
 	return (error == true) ? -1 : 0;
 }
 int npgsql_query::execute_scalar(const char* sp, std::list<npgsql_params*>& sql_param, std::map<std::string, char*>& result){
@@ -267,7 +276,7 @@ const char* npgsql_query::get_last_error(){
 
 void npgsql_query::panic(const char* error) {
 	if (_internal_error != NULL)
-		free(_internal_error);
+		delete[]_internal_error;
 	_internal_error = new char[strlen(error) + 1];
 	strcpy(_internal_error, error);
 	_errc = -1;
@@ -275,7 +284,7 @@ void npgsql_query::panic(const char* error) {
 
 void npgsql_query::panic() {
 	if (_internal_error != NULL)
-		free(_internal_error);
+		delete[]_internal_error;
 	//if (_cpool == NULL)return;
 	//if (_cpool->conn == NULL)return;
 	char* erro_msg = PQerrorMessage(_cpool->conn);

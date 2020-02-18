@@ -2,12 +2,8 @@
 #if defined(_MSC_VER)
 #pragma once
 #endif//!_MSC_VER
-#if !defined(_npgsql_global_h)
-#include "npgsql_global.h"
-#endif//!_global_h
 #if !defined(_npgsql_db_type_h)
-#define _npgsql_db_type_h
-#pragma warning (disable : 4231)
+#	define _npgsql_db_type_h
 typedef enum  {
 	COMMON = -1,
 	NULL_=-2,
@@ -408,5 +404,5 @@ static const char* get_db_type(npgsql_db_type db_type) {
 	//case npgsql_db_type::Array: return "integer";
 	default:return "unknown";
 	}
-};
+}
 #endif//!_npgsql_db_type_h

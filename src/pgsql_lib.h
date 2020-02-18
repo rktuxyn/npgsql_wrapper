@@ -11,25 +11,18 @@
 #endif//!_MSC_VER
 #if !defined(_pgsql_lib_h)
 #pragma warning(disable : 4996)
-#define _pgsql_lib_h
-#if !defined(_npgsql_global_h)
-#include "npgsql_global.h"
-#endif//!_global_h
-#if !defined(_os_support_h)
-#include "os_support.h"
-#endif
-#if !defined(LIBPQ_FE_H)
-#include <libpq-fe.h>
-#endif//!LIBPQ_FE_H
-#if !defined(POSTGRES_EXT_H)
-#include <postgres_ext.h>
-#endif//!POSTGRES_EXT_H
+#	define _pgsql_lib_h
+#	include "npgsql_global.h"
+#	include "os_support.h"
+#	include <libpq-fe.h>
+#	include <postgres_ext.h>
 #if !(defined(_WIN32)||defined(_WIN64)) && (defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__)))
-#define LIBPQ_C_DLL				"libpq.so.5"
+#	define LIBPQ_C_DLL				"libpq.so.5"
 #else
-#define LIBPQ_C_DLL				"libpq.dll"
-#endif
-#define LIBPQ_DLL_LOAD_ERROR	"Error loading PostgreSQL " LIBPQ_C_DLL ": " 
+#	define LIBPQ_C_DLL				"libpq.dll"
+#endif//!_WIN32
+
+#	define LIBPQ_DLL_LOAD_ERROR	"Error loading PostgreSQL " LIBPQ_C_DLL ": " 
 // libpq C library functions
 typedef void (*PQclearPQFunc)(PGresult *res);
 typedef char* (*PQerrorMessagePQFunc)(const PGconn *conn);

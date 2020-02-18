@@ -4,7 +4,7 @@
 * Copyrights licensed under the New BSD License.
 * See the accompanying LICENSE file for terms.
 */
-#include "pgsql_lib.h"
+#	include "pgsql_lib.h"
 LPWSTR s2ws(const char* s) {
 	/*wchar_t wtext[FILENAME_MAX];
 	mbstowcs(wtext, s, strlen(s) + 1);//Plus null
@@ -15,7 +15,7 @@ LPWSTR s2ws(const char* s) {
 	LPWSTR& ptr = buf;
 	//delete[] buf;
 	return ptr;
-};
+}
 pg_sql_lib::pg_sql_lib() {
 	_connected = false;
 	_pg_result = NULL; _conn = NULL; _pgsql_proc_iddl = NULL; _pgsql_module = NULL;
@@ -32,6 +32,9 @@ pg_sql_lib::pg_sql_lib() {
 };
 pg_sql_lib::~pg_sql_lib() {
 	if (_connected) { exit_nicely(); }
+	if (_pgsql_module != NULL) {
+		FreeLibrary(_pgsql_module);
+	}
 	_pg_result = NULL; _conn = NULL; _pgsql_proc_iddl = NULL; _pgsql_module = NULL;
 	_PQclear = NULL; _PQerrorMessage = NULL; _PQexec = NULL; _PQfmod = NULL;
 	_PQfname = NULL; _PQfsize = NULL; _PQftype = NULL; _PQgetisnull = NULL;
@@ -109,7 +112,7 @@ void pg_sql_lib::parse_connection_string(const char * conn, std::string & user, 
 		std::string value = (*i)[2].str();
 		conn_obj[key] = value;
 	};
-	free(query);
+	delete query;
 	user = conn_obj["UserId"];
 	pwd = conn_obj["Password"];
 	db = conn_obj["Database"];
