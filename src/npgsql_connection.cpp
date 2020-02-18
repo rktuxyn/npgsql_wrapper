@@ -5,6 +5,13 @@
 * See the accompanying LICENSE file for terms.
 */
 #	include "npgsql_connection.h"
+#if !defined(FALSE)
+#	define FALSE               0
+#endif//!FALSE
+
+#if !defined(TRUE)
+#	define TRUE                1
+#endif//!FALSE
 /*Delete execution result*/
 void clear_response(PGconn* conn) {
 	PGresult* res;
@@ -14,22 +21,17 @@ void clear_response(PGconn* conn) {
 }
 npgsql_connection::npgsql_connection() {
 	_active_pools = NULL;
-	_internal_error = new char;
-	_errc = 0; _conn_info = NULL;
-	_conn_state = connection_state::CLOSED;
+	_internal_error = NULL;
+	_errc = FALSE; _conn_info = NULL;
+	_conn_state = CLOSED;
 }
 void npgsql_connection::clear_conn_info() {
 	if (_conn_info != NULL) {
-		if (_conn_info->server != NULL)
-			delete _conn_info->server;
-		if (_conn_info->database != NULL)
-			delete _conn_info->database;
-		if (_conn_info->user != NULL)
-			delete _conn_info->user;
-		if (_conn_info->pwd != NULL)
-			delete _conn_info->pwd;
-		if (_conn_info->port != NULL)
-			delete _conn_info->port;
+		_free_obj(_conn_info->server);
+		_free_obj(_conn_info->database);
+		_free_obj(_conn_info->user);
+		_free_obj(_conn_info->pwd);
+		_free_obj(_conn_info->port);
 		delete _conn_info;
 		_conn_info = NULL;
 	}
@@ -40,7 +42,7 @@ npgsql_connection::~npgsql_connection(){
 }
 
 int npgsql_connection::connect(pg_connection_info* conn){
-	if (_conn_state == connection_state::OPEN) {
+	if (_conn_state == OPEN) {
 		close_all_connection(); this->clear_conn_info();
 	}
 	this->_conn_info = conn;
@@ -48,7 +50,7 @@ int npgsql_connection::connect(pg_connection_info* conn){
 		return _errc;
 	}
 	pg_connection_pool* cpool = create_connection_pool();/** open one connection*/
-	if (cpool->conn_state != connection_state::OPEN) {
+	if (cpool->conn_state != OPEN) {
 		return -1;
 	}
 	if (_errc < 0)return _errc;
@@ -72,7 +74,7 @@ int npgsql_connection::connect(){
 	}
 	close_all_connection();
 	pg_connection_pool* cpool = create_connection_pool();/** open one connection*/
-	if (cpool->conn_state != connection_state::OPEN) {
+	if (cpool->conn_state != OPEN) {
 		return -1;
 	}
 	if (_errc < 0)return _errc;
@@ -90,8 +92,8 @@ pg_connection_pool* npgsql_connection::create_connection_pool() {
 			cpool = NULL;
 		}
 	}
-	if (!cpool || (cpool != NULL && (cpool->busy < 0 || cpool->conn_state == connection_state::CLOSED))) {
-		if (!cpool) {
+	if (cpool == NULL || (cpool != NULL && (cpool->busy < 0 || cpool->conn_state == CLOSED))) {
+		if (cpool == NULL) {
 			cpool = new pg_connection_pool;
 		}
 		cpool->conn = PQsetdbLogin(
@@ -107,15 +109,12 @@ pg_connection_pool* npgsql_connection::create_connection_pool() {
 			cpool->error_code = -2;
 			panic(PQerrorMessage(cpool->conn));
 			cpool->error_msg = get_last_error();
-			cpool->conn_state = connection_state::CLOSED;
-			//_conn_state = connection_state::CLOSED;
-			//PQfinish(cpool->conn); delete cpool;
-			//return cpool;
+			cpool->conn_state = CLOSED;
 		}
 		else {
-			cpool->conn_state = connection_state::OPEN;
+			cpool->conn_state = OPEN;
 		}
-		if (cpool->conn_state == connection_state::OPEN) {
+		if (cpool->conn_state == OPEN) {
 			cpool->error_code = 0;
 			cpool->error_msg = NULL;
 			cpool->busy = -1;
@@ -125,9 +124,7 @@ pg_connection_pool* npgsql_connection::create_connection_pool() {
 		}
 		cpool->next = _active_pools;
 		_active_pools = cpool;
-		if (_conn_state != connection_state::OPEN) {
-			_conn_state = connection_state::OPEN;
-		}
+		_conn_state = OPEN;
 		return cpool;
 	}
 	else {
@@ -144,22 +141,22 @@ void npgsql_connection::free_connection_pool(pg_connection_pool* cpool){
 
 void npgsql_connection::exit_all(){
 	if (_internal_error != NULL) {
-		free(_internal_error); _internal_error = NULL;
+		delete[]_internal_error; _internal_error = NULL;
 	}
 	close_all_connection(); clear_conn_info();
 }
 void npgsql_connection::exit_nicely(pg_connection_pool* cpool) {
-	if (cpool == NULL || (cpool != NULL && cpool->conn == NULL))return;
+	if (cpool == NULL || cpool->conn == NULL)return;
 	clear_response(cpool->conn);
 	PQfinish(cpool->conn); cpool->conn = NULL;
 	cpool->busy = -1;
-	cpool->conn_state = connection_state::CLOSED;
+	cpool->conn_state = CLOSED;
 	cpool->error_code = 0;
 	cpool->error_msg = NULL;
 }
 
 void npgsql_connection::close_all_connection(){
-	if (_conn_state == connection_state::CLOSED)return;
+	if (_conn_state == CLOSED)return;
 	if (_active_pools == NULL)return;
 	pg_connection_pool* cpool;
 	for (cpool = _active_pools; cpool; cpool = cpool->next) {
@@ -178,7 +175,7 @@ void npgsql_connection::close_all_connection(){
 		cpool->error_msg = NULL;
 		delete cpool;
 	}
-	_conn_state = connection_state::CLOSED;
+	_conn_state = CLOSED;
 	if (_active_pools != NULL)
 		delete _active_pools;
 	_active_pools = NULL;
@@ -192,9 +189,15 @@ const char* npgsql_connection::get_last_error(){
 connection_state npgsql_connection::conn_state(){
 	return _conn_state;
 }
+//constexpr const char*
+#define _conn_user_error	"No user defined (e.g. postgress) in given connection string as `UserId`!!!"
+#define _conn_pwd_error		"No password defined (e.g. 123456) in given connection string as `Password`!!!"
+#define _conn_db_error		"No database defined (e.g. sow) in given connection string as `Database`!!!"
+#define _conn_server_error	"No server defined (e.g. localhost) in given connection string as `Password`!!!"
+#define _conn_port_error	"No port defined (e.g. 5432) in given connection string as `Port`!!!"
 
 int npgsql_connection::parse_connection_string(const char* conn){
-	if (((conn != NULL) && (conn[0] == '\0')) || conn == NULL) {
+	if (conn == NULL || strlen(conn) == 0) {
 		panic("No connection string found!!!");
 		return -1;
 	}
@@ -209,38 +212,38 @@ int npgsql_connection::parse_connection_string(const char* conn){
 		if (conn_obj.find(key) != conn_obj.end()) {
 			key = "Duplicate key found in connection string	==> `" + key + "`!!!";
 			panic(key.c_str());
-			query->clear(); delete query;
+			_free_obj(query);
 			goto _ERROR;
 		}
 		conn_obj[key] = value;
-	};
-	query->clear(); delete query;
+	}
+	_free_obj(query);
 	if (_conn_info == NULL) {
 		_conn_info = new pg_connection_info();
 	}
 	_conn_info->user = new std::string(conn_obj["UserId"]);
 	if (_conn_info->user->empty()) {
-		panic("No user defined (e.g. postgress) in given connection string as `UserId`!!!");
+		panic(_conn_user_error);
 		goto _ERROR;
 	}
 	_conn_info->pwd = new std::string(conn_obj["Password"]);
 	if (_conn_info->pwd->empty()) {
-		panic("No password defined (e.g. 123456) in given connection string as `Password`!!!");
+		panic(_conn_pwd_error);
 		goto _ERROR;
 	}
 	_conn_info->database = new std::string(conn_obj["Database"]);
 	if (_conn_info->database->empty()) {
-		panic("No database defined (e.g. sow) in given connection string as `Database`!!!");
+		panic(_conn_db_error);
 		goto _ERROR;
 	}
 	_conn_info->server = new std::string(conn_obj["Server"]);
 	if (_conn_info->server->empty()) {
-		panic("No server defined (e.g. localhost) in given connection string as `Password`!!!");
+		panic(_conn_server_error);
 		goto _ERROR;
 	}
 	_conn_info->port = new std::string(conn_obj["Port"]);
 	if (_conn_info->port->empty()) {
-		panic("No port defined (e.g. 5432) in given connection string as `Port`!!!");
+		panic(_conn_port_error);
 		goto _ERROR;
 	}
 	goto _END;
@@ -248,6 +251,7 @@ _ERROR:
 	conn_obj.clear();
 	return _errc;
 _END:
+	conn_obj.clear();
 	return 1;
 }
 
@@ -257,40 +261,46 @@ int npgsql_connection::validate_cinfo(){
 		return _errc;
 	}
 	if (_conn_info->user == NULL || _conn_info->user->empty()) {
-		panic("No user defined (e.g. postgress) in given connection string as `UserId`!!!");
+		panic(_conn_user_error);
 		return _errc;
 	}
 	if (_conn_info->pwd->empty()) {
-		panic("No password defined (e.g. 123456) in given connection string as `Password`!!!");
+		panic(_conn_pwd_error);
 		return _errc;
 	}
 	if (_conn_info->database->empty()) {
-		panic("No database defined (e.g. sow) in given connection string as `Database`!!!");
+		panic(_conn_db_error);
 		return _errc;
 	}
 	if (_conn_info->server->empty()) {
-		panic("No server defined (e.g. localhost) in given connection string as `Password`!!!");
+		panic(_conn_server_error);
 		return _errc;
 	}
 	if (_conn_info->port->empty()) {
-		panic("No port defined (e.g. 5432) in given connection string as `Port`!!!");
+		panic(_conn_port_error);
 		return _errc;
 	}
 	return 1;
 }
 
 void npgsql_connection::panic(const char* error){
-	if (_internal_error != NULL)
-		delete[]_internal_error;
-	_internal_error = new char[strlen(error) + 1];
-	strcpy(_internal_error, error);
+	if (_internal_error != NULL) {
+		delete[]_internal_error; _internal_error = NULL;
+	}
+	size_t len = strlen(error);
+	_internal_error = new char[len + sizeof(char)];
+	strcpy_s(_internal_error, len, error);
+	_internal_error[len] = '\000';
 	_errc = -1;
 }
 
 void npgsql_connection::panic(char* erro_msg){
-	if (_internal_error != NULL)
-		free(_internal_error);
-	_internal_error = new char[strlen(erro_msg) + 1];
-	strcpy(_internal_error, const_cast<const char*>(erro_msg));
+	if (_internal_error != NULL) {
+		delete[]_internal_error; _internal_error = NULL;
+	}
+	size_t len = strlen(erro_msg);
+	_internal_error = new char[len + sizeof(char)];
+	strcpy_s(_internal_error, len, erro_msg);
+	_internal_error[len] = '\000';
 	_errc = -1;
 }

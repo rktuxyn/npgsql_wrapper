@@ -185,7 +185,7 @@ const char* pg_sql::execute_cmd(const char *command, int&ret) {
 	);
 	//std::vector<char> chars;
 	//const char* char_arr = chars.data();
-	const char* result = '\0';
+	const char* result = NULL;
 	ExecStatusType exs_type = PQresultStatus(res);
 	if (exs_type == PGRES_FATAL_ERROR) goto _ERROR;
 	if (exs_type == PGRES_NONFATAL_ERROR) goto _ERROR;
@@ -206,12 +206,12 @@ _END:
 const char* pg_sql::execute_query(const char *query, int&ret) {
 	if (((query != NULL) && (query[0] == '\0')) || query == NULL) { 
 		panic("SQL Statement required!!!");
-		return '\0'; 
+		return NULL;
 	}
 	//https://timmurphy.org/2009/11/19/pqexecparams-example-postgresql-query-execution-with-parameters/
 	// Execute the statement
 	PGresult *res = PQexec(_conn, query);
-	const char* result = '\0';
+	const char* result = NULL;
 	ExecStatusType exs_type = PQresultStatus(res);
 	if (exs_type == PGRES_FATAL_ERROR) goto _ERROR;
 	if (exs_type == PGRES_NONFATAL_ERROR) goto _ERROR;
