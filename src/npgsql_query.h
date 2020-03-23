@@ -19,7 +19,9 @@
 #	include "npgsql_result.h"
 class NPGSQL_API npgsql_query {
 public:
-	npgsql_query(pg_connection_pool* cpool);
+	explicit npgsql_query(pg_connection_pool* cpool);
+	npgsql_query(const npgsql_query&) = delete;
+	npgsql_query& operator=(const npgsql_query&) = delete;
 	~npgsql_query();
 	void free_connection();
 	const char* execute_query(const char* query, int& rec);

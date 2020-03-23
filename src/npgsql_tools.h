@@ -14,7 +14,6 @@
 #	include <sstream>
 #pragma warning (disable : 4231)
 NPGSQL_API void json_array_stringify_s(std::vector<char*>& json_array_obj, std::string& json_str);
-NPGSQL_API void json_parse(const char* json_str, std::list<std::map<std::string, std::string>>&json_obj);
 NPGSQL_API void json_array_stringify(std::list<std::map<std::string, std::string>>& json_obj, std::string&json_str);
 NPGSQL_API void json_array_stringify_char(std::list<std::map<std::string, char*>>& json_obj, std::string&json_str);
 NPGSQL_API void json_array_stringify_cchar(std::list<std::map<std::string, const char*>>& json_obj, std::string&json_str);

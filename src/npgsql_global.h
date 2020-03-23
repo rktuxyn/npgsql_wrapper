@@ -10,7 +10,6 @@
 #endif//!_MSC_VER
 #if !defined(_npgsql_global_h)
 #	define _npgsql_global_h
-#	define SUCCESS 1
 #	include <iostream>
 #	include <stdio.h>
 #	include <list>
@@ -19,13 +18,6 @@
 #	include <regex>
 #	include <cstdlib>
 #	include <vector>
-#if !defined(NPGSQL_EXPORTS)
-#	define NPGSQL_EXPORTS
-#endif//!NPGSQL_EXPORTS
-#ifdef NPGSQL_EXPORTS
-#	define NPGSQL_API __declspec(dllexport)
-#else
-#	define NPGSQL_API __declspec(dllimport)
-#endif//!NPGSQL_EXPORTS
+#	include "npgsql_config.h"
 #endif//!_npgsql_global_h
 

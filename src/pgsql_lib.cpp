@@ -178,8 +178,10 @@ int pg_sql_lib::execute_scalar(const char *query, char *value) {
 		value = _PQgetvalue(res, 0, 0);
 		exists = true;
 	}
-	else
+	else {
+		value = NULL;
 		set_error();
+	}
 	_PQclear(res);
 	return (exists == true) ? 0 : -1;
 };

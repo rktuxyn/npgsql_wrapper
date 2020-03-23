@@ -27,17 +27,19 @@ private:
 	char*							_pq_error_text;
 	int								_is_disposed;
 public:
-	pg_sql();
+	explicit pg_sql();
+	pg_sql(const pg_sql&) = delete;
+	pg_sql& operator=(const pg_sql&) = delete;
 	~pg_sql();
-	virtual const int is_api_error();
-	virtual const char * get_last_error();
+	const int is_api_error();
+	const char * get_last_error();
 	// Connect to the database
-	virtual int connect(const char *conn);
+	int connect(const char *conn);
 	// Close database connection
-	virtual void exit_nicely();
-	virtual int get_row_count(const char *object, char *value);
-	virtual const char* execute_cmd(const char *command, int&ret);
-	virtual const char* execute_query(const char *query, int&ret);
+	void exit_nicely();
+	int get_row_count(const char *object, char *value);
+	const char* execute_cmd(const char *command, int&ret);
+	const char* execute_query(const char *query, int&ret);
 	template<class _func>
 	int execute_scalar(const char *query, _func fn) {
 		if (((query != NULL) && (query[0] == '\0')) || query == NULL) {
@@ -84,11 +86,11 @@ public:
 		PQclear(res);
 		return (exists == true) ? 0 : -1;
 	};
-	virtual int execute_scalar_x(const char *query, std::list<std::string>&out_param_array, std::map<std::string, char*>&out_param_map);
-	virtual int execute_non_query(const char *query);
+	int execute_scalar_x(const char *query, std::list<std::string>&out_param_array, std::map<std::string, char*>&out_param_map);
+	int execute_non_query(const char *query);
 private:
-	virtual int parse_connection_string(const char *conn, std::string& user, std::string& pwd, std::string& server, std::string& port, std::string& db);
-	virtual void clear_response();
+	int parse_connection_string(const char *conn, std::string& user, std::string& pwd, std::string& server, std::string& port, std::string& db);
+	void clear_response();
 	virtual void panic(const char* std_error_msg);
 	virtual void panic();
 };

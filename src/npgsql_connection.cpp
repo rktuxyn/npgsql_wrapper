@@ -5,6 +5,9 @@
 * See the accompanying LICENSE file for terms.
 */
 #	include "npgsql_connection.h"
+#	include "npgsql_global.h"
+#	include <postgres_ext.h>
+#	include <regex>
 #if !defined(FALSE)
 #	define FALSE               0
 #endif//!FALSE
@@ -92,7 +95,7 @@ pg_connection_pool* npgsql_connection::create_connection_pool() {
 			cpool = NULL;
 		}
 	}
-	if (cpool == NULL || (cpool != NULL && (cpool->busy < 0 || cpool->conn_state == CLOSED))) {
+	if (cpool == NULL || cpool->busy < 0 || cpool->conn_state == CLOSED) {
 		if (cpool == NULL) {
 			cpool = new pg_connection_pool;
 		}

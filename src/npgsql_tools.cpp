@@ -20,12 +20,6 @@ void json_array_stringify_s(std::vector<char*>& json_array_obj, std::string & js
 	delete ss;
 	return;
 }
-void json_parse(const char * json_str, std::list<std::map<std::string, std::string>>& json_obj) {
-#if defined(_WIN64)
-	//
-#endif//!_WIN64
-	std::regex pattern("([\\w+%]+):([^,]*)");
-}
 void json_array_stringify(std::list<std::map<std::string, std::string>>& json_obj, std::string& json_str) {
 	json_str = "[";
 	for (auto s = json_obj.begin(); s != json_obj.end(); ++s) {

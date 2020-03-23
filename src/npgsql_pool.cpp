@@ -5,7 +5,7 @@
 * See the accompanying LICENSE file for terms.
 */
 #	include "npgsql_pool.h"
-
+#	include "npgsql_query.h"
 npgsql_pool::npgsql_pool(){
 	_errc = 0; _conn = new npgsql_connection();
 	_internal_error = new char;
@@ -30,9 +30,9 @@ connection_state npgsql_pool::connect(const char* conn){
 	int rec = this->_conn->connect(conn);
 	if (rec < 0) {
 		this->panic(this->_conn->get_last_error(), -1);
-		return connection_state::CLOSED;
+		return CLOSED;
 	}
-	return connection_state::OPEN;
+	return OPEN;
 }
 
 connection_state npgsql_pool::connect(pg_connection_info* conn){
@@ -43,13 +43,13 @@ connection_state npgsql_pool::connect(pg_connection_info* conn){
 	int rec = this->_conn->connect(conn);
 	if (rec < 0) {
 		this->panic(this->_conn->get_last_error(), -1);
-		return connection_state::CLOSED;
+		return CLOSED;
 	}
-	return connection_state::OPEN;
+	return OPEN;
 }
 
 int npgsql_pool::execute_scalar_x(const char* query, std::list<std::string>& out_param_array, std::map<std::string, char*>& out_param_map){
-	if (state() == connection_state::CLOSED) {
+	if (state() == CLOSED) {
 		this->panic("No active connectio found...", -1);
 		return _errc;
 	}
@@ -70,7 +70,7 @@ int npgsql_pool::execute_scalar_x(const char* query, std::list<std::string>& out
 }
 
 int npgsql_pool::execute_non_query(const char* query){
-	if (state() == connection_state::CLOSED) {
+	if (state() == CLOSED) {
 		this->panic("No active connectio found...", -1);
 		return _errc;
 	}
@@ -96,16 +96,16 @@ const char* npgsql_pool::get_last_error(){
 }
 
 connection_state npgsql_pool::state(){
-	return _conn == NULL ? connection_state::CLOSED : _conn->conn_state();
+	return _conn == NULL ? CLOSED : _conn->conn_state();
 }
 
 void npgsql_pool::exit_all(){
-	if (state() == connection_state::CLOSED)return;
+	if (state() == CLOSED)return;
 	_conn->exit_all();
 }
 
 void npgsql_pool::close_all_connection(){
-	if (state() == connection_state::CLOSED)return;
+	if (state() == CLOSED)return;
 	_conn->close_all_connection();
 }
 void npgsql_pool::panic(const char* error, int code = -1){

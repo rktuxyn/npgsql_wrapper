@@ -197,7 +197,7 @@ int npgsql_query::execute_scalar(const char* sp, std::list<npgsql_params*>& sql_
 				continue;
 		}
 		if (param->direction == parameter_direction::Output || param->direction == parameter_direction::InputOutput) {
-			result[param->parameter_name] = '\0';
+			result[param->parameter_name] = NULL;
 			out_param_array->push_back(param->parameter_name);
 			if (out_param_count == 0) {
 				out_param->append("f.");

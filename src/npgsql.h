@@ -6,7 +6,6 @@
 #pragma warning (disable : 4231)
 #	define _npgsql_h
 #	include "npgsql_global.h"
-//5:27 PM 11/19/2018
 #	include "pg_sql.h"
 #	include "npgsql_db_type.h"
 #	include "npgsql_params.h"
@@ -37,6 +36,8 @@ protected:
 public:
 	explicit npgsql(const char* lib_path);
 	explicit npgsql();
+	npgsql(const npgsql&) = delete;
+	npgsql& operator=(const npgsql&) = delete;
 	~npgsql();
 	void quote_literal(std::string&str) {
 		str = "'" + str + "'";
@@ -135,12 +136,9 @@ inline int npgsql::execute_scalar_l( const char* query, std::list<npgsql_param_t
 			}
 			std::string& copy = *_query;
 			copy = std::regex_replace( copy, *re, val->c_str() );
-			//std::cout << val->c_str() << "<br/>";
-			//std::cout << copy << "<br/>";
 			_free_obj(str); delete re; _free_obj(val);
 		}
 	}
-	//std::cout << _query->c_str() << "<br/>";
 	int ret = _pgsql->execute_scalar( _query->c_str(), func );
 	_free_obj(_query);
 	return ret;

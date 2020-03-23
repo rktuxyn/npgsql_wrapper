@@ -12,17 +12,10 @@
 #pragma warning (disable : 4231)
 #pragma warning(disable : 4996)
 #	define _npgsql_connection_h
-#	include "npgsql_global.h"
 #	include <libpq-fe.h>
-#	include <postgres_ext.h>
 #	include "connection_state.h"
-#	include <regex>
-#if !defined(_free_obj)
-#	define _free_obj(obj)\
-while(obj){\
-	obj->clear();delete obj;obj = NULL;\
-}
-#endif//!_free_obj
+#	include <string>
+#	include "npgsql_config.h"
 typedef struct pg_conn_pool {
 	struct pg_conn_pool* next;  /* pointer to next member*/
 	PGconn* conn;              /* PgSQL connection handle*/
@@ -41,6 +34,8 @@ typedef struct {
 class NPGSQL_API npgsql_connection {
 public:
 	explicit npgsql_connection();
+	npgsql_connection(const npgsql_connection&) = delete;
+	npgsql_connection& operator=(const npgsql_connection&) = delete;
 	~npgsql_connection();
 	int connect(pg_connection_info* conn);
 	int connect(const char* conn);

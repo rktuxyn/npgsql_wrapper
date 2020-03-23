@@ -13,10 +13,14 @@
 #pragma warning(disable : 4996)
 #	define _npgsql_pool_h
 #	include "npgsql_connection.h"
-#	include "npgsql_query.h"
+#	include <list>
+#	include <string>
+#	include <map>
 class NPGSQL_API npgsql_pool {
 public:
-	npgsql_pool();
+	explicit npgsql_pool();
+	npgsql_pool(const npgsql_pool&) = delete;
+	npgsql_pool& operator=(const npgsql_pool&) = delete;
 	~npgsql_pool();
 	connection_state connect(const char* conn);
 	connection_state connect(pg_connection_info* conn_info);
