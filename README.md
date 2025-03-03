@@ -1,69 +1,83 @@
-# Multi Connection Pool PgSQL C++ Wrapper for web_jsx (FCGI/CGI Application)<br/>
-#Include header file
-```c++
-#if !defined(_npgsql_h)
-#include <npgsql.h>
-#endif//!_npgsql_h
-#if !defined(_npgsql_tools_h)
-#include <npgsql_tools.h>
-#endif//_npgsql_tools_h
+# Npgsql Wrapper
+
+Npgsql Wrapper is a lightweight, high-performance C/C++ wrapper around the PostgreSQL client library (libpq), designed to simplify database interactions while maintaining efficiency and flexibility.
+
+## Features
+
+- Simple and clean API for PostgreSQL operations
+- Secure parameterized queries
+- Connection pooling for efficient resource management
+- Asynchronous support for non-blocking operations
+- Strongly-typed query results
+- Lightweight and easy to integrate
+
+## Installation
+
+### Prerequisites
+
+- PostgreSQL client library (`libpq`)
+- C++17 or later
+- CMake (for building the project)
+
+### Build and Install
+
+```sh
+git clone https://github.com/fsystech/npgsql_wrapper.git
+cd npgsql_wrapper
+mkdir build && cd build
+cmake ..
+make
+sudo make install
 ```
-#Initialize sow.npgsql.dll
-```c++
-npgsql* pgsql = new npgsql();
-int rec = !pgsql->is_iniit ? -1 : 0;
-if (rec < 0) {
-	std::cout << "UNABLE TO LOAD PGSQL LIB==>" << pgsql->lib_absolute_path << "<br/>";
+
+## Usage
+
+### Basic Example
+
+```cpp
+#include "npgsql_wrapper.h"
+
+int main() {
+    npgsql::Database db("host=myserver user=myuser password=mypass dbname=mydb");
+    if (!db.isConnected()) {
+        std::cerr << "Failed to connect to database" << std::endl;
+        return 1;
+    }
+
+    auto result = db.query("SELECT * FROM users WHERE id = $1", 1);
+    for (auto& row : result) {
+        std::cout << "User ID: " << row["id"].as<int>() << ", Name: " << row["name"].as<std::string>() << "\n";
+    }
+    return 0;
 }
 ```
-#Connect to PostgreSQL
-```c++
-const char* pg_conn = "Server=localhost; Port=5432; UserId=postgres;Password=*****;Database=sow; keepalive=10; CommandTimeout=100000;";
-rec = pgsql->connect(pg_conn);
-if (rec < 0) {
-	std::cout << "Unable to connect db==>" << pgsql->lib_absolute_path << "<br/>";
-	return __reslut;
-};
-```
-#Call to Stored Procedure with param
-```c++
-std::list<npgsql_params*>* sql_param = new std::list<npgsql_params*>();
-malloc(sizeof sql_param);
-sql_param->push_back(new npgsql_params("login_id", npgsql_db_type::Varchar, parameter_direction::Input, "rajibs"));
-sql_param->push_back(new npgsql_params("form_data", npgsql_db_type::Jsonb, parameter_direction::Input, "{}"));
-sql_param->push_back(new npgsql_params("_ret_data_table", npgsql_db_type::Jsonb, parameter_direction::Output));
-sql_param->push_back(new npgsql_params("_ret_val", npgsql_db_type::Bigint, parameter_direction::Output));
-sql_param->push_back(new npgsql_params("_ret_msg", npgsql_db_type::Varchar, parameter_direction::Output));
-std::map<std::string, char*>* result = new std::map<std::string, char*>();
-malloc(sizeof result);
-rec = pgsql->execute_scalar("auth.__check_npgsql", *sql_param, *result);
-free(sql_param);
-if (rec < 0) {
-	std::cout << pgsql->get_last_error();
-	pgsql->close();
-	free(pgsql);
-}else{
-	pgsql->close();
-	auto search = result->find("_ret_data_table");
-	if (search != result->end()) {
-		try {
-			std::cout <<  search->second;
-		} catch (std::exception&e) {
-			std::cout << e.what() << '\n';
-		}
-	}
-	else {
-		std::cout << "Not found\n";
-	}
-	free(result);
-}
-```
-#Call raw query
-```c++
-pgsql->execute_scalar("select * from information_schema.columns", [](int i, std::vector<char*>&row) {
-	for (size_t i = 0; i < row.size(); ++i) {
-		std::cout << row[i] << '\r\n';
-	}
-	return;
-});
-```
+
+## API Reference
+
+### `npgsql::Database`
+- `Database(const std::string& connectionString)` - Initializes the database connection.
+- `bool isConnected() const` - Checks if the connection is active.
+- `QueryResult query(const std::string& sql, Args... args)` - Executes a query with optional parameters.
+- `int execute(const std::string& sql, Args... args)` - Executes a non-query statement (INSERT, UPDATE, DELETE).
+
+### `npgsql::QueryResult`
+- `bool empty() const` - Checks if the result set is empty.
+- `size_t size() const` - Returns the number of rows.
+- `Row operator[](size_t index) const` - Access a specific row.
+
+### `npgsql::Row`
+- `Column operator[](const std::string& columnName) const` - Access a specific column.
+- `template<typename T> T as() const` - Convert the column value to the desired type.
+
+## License
+
+This project is licensed under the MIT License.
+
+## Contributing
+
+Contributions are welcome! Feel free to submit issues or pull requests to improve the Npgsql Wrapper.
+
+## Contact
+
+For any inquiries, reach out to [FSys Tech Ltd](https://github.com/fsystech).
+
